@@ -9,7 +9,6 @@ import { approvedSyllables } from './data/approvedSyllables';
 
 import { StickerAlbum } from './components/StickerAlbum';
 import { AdminPanel } from './components/AdminPanel';
-import { Leaderboard } from './components/Leaderboard';
 import { Achievements } from './components/Achievements';
 import { MainMenu } from './components/MainMenu';
 import { GameScreen } from './components/GameScreen';
@@ -24,54 +23,14 @@ import { ColorByNumberScreen } from './components/ColorByNumberScreen';
 import { SyllableClapScreen } from './components/SyllableClapScreen';
 import { RhymeTimeScreen } from './components/RhymeTimeScreen';
 import { FirstSoundScreen } from './components/FirstSoundScreen';
+import { API_BASE_URL, normalizeImageUrl } from './lib/api';
 
-const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', '::1']);
-
-const resolveApiBaseUrl = () => {
-  const configured = (process.env.REACT_APP_API_BASE_URL || '').trim();
-
-  if (typeof window === 'undefined') {
-    return configured || 'http://localhost:5001';
-  }
-
-  const browserHost = window.location.hostname;
-  const fallback = `${window.location.protocol}//${browserHost}:5001`;
-  if (!configured) return fallback;
-  if (configured.startsWith('/')) return configured;
-
-  try {
-    const parsed = new URL(configured);
-    if (LOCAL_HOSTS.has(parsed.hostname) && !LOCAL_HOSTS.has(browserHost)) {
-      const port = parsed.port || '5001';
-      return `${parsed.protocol}//${browserHost}:${port}`;
-    }
-    return parsed.toString().replace(/\/$/, '');
-  } catch {
-    return configured.replace(/\/$/, '');
-  }
-};
-
-const API_BASE_URL = resolveApiBaseUrl();
-const HAS_ABSOLUTE_API_BASE = /^https?:\/\//i.test(API_BASE_URL);
 const SILENT_AUDIO_DATA_URI = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
 const IS_TEST_ENV = typeof process !== 'undefined' && process.env.NODE_ENV === 'test';
 const SPEECH_PREFETCH_LIMIT = 48;
 const buildMathCollectionStorageKey = (userKey) => `er_math_collection_${userKey}`;
 const SPEECH_RATE_VALUES = ['SLOW', 'NORMAL', 'FAST'];
 let placementAudioContext = null;
-const WORD_IMAGE_KEYS = [
-  'cat', 'dog', 'fish', 'car', 'sun', 'tree', 'moon', 'star', 'ball', 'book',
-  'house', 'apple', 'flower', 'duck', 'mouse', 'cow', 'horse', 'milk', 'cake', 'hat',
-  'boot', 'baby', 'bed', 'door', 'key', 'egg', 'boat', 'bird', 'milk', 'book',
-  'milk', 'sun', 'moon', 'moon', 'moon', 'moon', 'tree', 'tree', 'boat', 'tree',
-  'boat', 'tree', 'bed', 'book', 'door', 'book', 'moon', 'book', 'hat', 'boot',
-  'boot', 'baby', 'cat', 'cat', 'cat', 'mouse', 'baby', 'book', 'book', 'book',
-  'baby', 'house', 'flower', 'car', 'boat', 'car', 'car', 'bird', 'car', 'house',
-  'house', 'cake', 'milk', 'apple', 'apple', 'apple', 'apple', 'apple', 'flower', 'apple',
-  'apple', 'tree', 'apple', 'flower', 'milk', 'cake', 'key', 'key', 'milk', 'book',
-  'key', 'book', 'book', 'book', 'milk', 'bed', 'door', 'bed', 'sun'
-];
-
 const getPlacementAudioContext = () => {
   if (typeof window === 'undefined') return null;
   const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
@@ -209,30 +168,8 @@ const getSpeechPhoneticFallback = (input, lang) => {
   return value.toLowerCase();
 };
 
-const normalizeImageUrl = (rawUrl) => {
-  if (!rawUrl || typeof rawUrl !== 'string') return rawUrl;
-  if (/^(data:|blob:)/i.test(rawUrl)) return rawUrl;
-  if (/^(https?:)?\/\//i.test(rawUrl)) return rawUrl;
+const normalizeWordImageUrl = (rawUrl) => normalizeImageUrl(rawUrl || '/images/star.webp');
 
-  if (rawUrl.startsWith('/')) {
-    return HAS_ABSOLUTE_API_BASE ? `${API_BASE_URL}${rawUrl}` : rawUrl;
-  }
-
-  return HAS_ABSOLUTE_API_BASE ? `${API_BASE_URL}/${rawUrl}` : `/${rawUrl}`;
-};
-
-const normalizeWordImageUrl = (rawUrl, wordId) => {
-  const placeholderLike = !rawUrl
-    || /^data:image\/svg\+xml/i.test(rawUrl)
-    || /placehold\.co/i.test(rawUrl);
-
-  if (placeholderLike) {
-    const fallbackKey = WORD_IMAGE_KEYS[Math.max(0, Number(wordId || 1) - 1)] || 'book';
-    return normalizeImageUrl(`/images/${fallbackKey}.png`);
-  }
-
-  return normalizeImageUrl(rawUrl);
-};
 const SPEECH_PROFILES = {
   EN: {
     languageCode: 'en-US',
@@ -366,10 +303,10 @@ const LETTER_NAME_MAPS = {
     E: 'e',
     F: 'ef',
     G: 'ge',
-    H: 'he',
+    H: 'ha',
     I: 'i',
     J: 'je',
-    K: 'ke',
+    K: 'ka',
     L: 'el',
     M: 'em',
     N: 'en',
@@ -383,7 +320,11 @@ const LETTER_NAME_MAPS = {
     V: 've',
     X: 'xe',
     Y: 'ye',
-    Z: 'ze'
+    Z: 'ze',
+    "O'": "o'",
+    "G'": "g'e",
+    SH: 'she',
+    CH: 'che'
   }
 };
 const PHONETIC_SPEECH_MAPS = {
@@ -820,7 +761,6 @@ export default function App() {
   }); 
   const [theme, setTheme] = useState('OCEAN'); 
   const [gameState, setGameState] = useState('MENU'); 
-  const [menuSelectedGame, setMenuSelectedGame] = useState(null);
   const [playMode, setPlayMode] = useState('WORDS');
   const [mathMode, setMathMode] = useState('FRUITS');
   const [serverData, setServerData] = useState(null);
@@ -833,11 +773,7 @@ export default function App() {
   const [achievements, setAchievements] = useState([]);
   
   const [isMounted, setIsMounted] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null); 
-  const [authMode, setAuthMode] = useState('WELCOME'); 
-  const [usernameInput, setUsernameInput] = useState('');
-  const [passwordInput, setPasswordInput] = useState('');
-  const [leaderboard, setLeaderboard] = useState([]);
+  const [currentUser, setCurrentUser] = useState(null);
   const [adminToken, setAdminToken] = useState(null);
   const [toast, setToast] = useState(null);
 
@@ -887,11 +823,11 @@ export default function App() {
     };
   }, []);
 
-  useEffect(() => {
-    if (authMode === 'WELCOME') {
-      setMenuSelectedGame(null);
-    }
-  }, [authMode]);
+  const isLiteDevice = useMemo(() => {
+    if (typeof navigator === 'undefined') return false;
+    return Boolean((navigator.deviceMemory && navigator.deviceMemory <= 2)
+      || (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 2));
+  }, []);
   const letterStyle = 'CARTOON';
   const [winStreak, setWinStreak] = useState(0);
   const [rewardCollection, setRewardCollection] = useState([]);
@@ -933,7 +869,7 @@ export default function App() {
             if (!Array.isArray(wordsList)) return [language, wordsList];
             const normalizedWords = wordsList.map((word) => ({
               ...word,
-              img: normalizeWordImageUrl(word.img, word.id)
+              img: normalizeWordImageUrl(word.img)
             }));
             return [language, normalizedWords];
           })
@@ -1087,7 +1023,6 @@ export default function App() {
   const activeChestReward = chestQueue[0]
     ? decorateReward(CHEST_REWARD_POOL.find((reward) => reward.id === chestQueue[0]) || CHEST_REWARD_POOL[0], lang)
     : null;
-  const nextChestIn = chestQueue.length ? 0 : (3 - (winStreak % 3 || 3) + 3) % 3 || 3;
   const unlockedRewardItems = useMemo(
     () => rewardCollection
       .map((rewardId) => CHEST_REWARD_POOL.find((reward) => reward.id === rewardId))
@@ -1126,6 +1061,7 @@ export default function App() {
   }, [displayText, foundLetters.length, playMode]);
   const levelUnits = useMemo(() => {
     if (playMode === 'SYLLABLES') return currentLevel.units || [];
+    if (currentLevel.units?.length) return currentLevel.units;
     return displayText ? displayText.split('') : [];
   }, [playMode, currentLevel, displayText]);
 
@@ -1618,13 +1554,10 @@ export default function App() {
   };
 
   const handleLogout = () => {
+    stopRemoteSpeech();
     setCurrentUser(null);
     setAdminToken(null);
-    setUsernameInput('');
-    setPasswordInput('');
-    setAuthMode('READY');
-    setMenuSelectedGame(null);
-    showToast(feedbackText.logout, 'info');
+    setGameState('MENU');
   };
 
   const handleResetProgress = () => {
@@ -1811,79 +1744,54 @@ export default function App() {
     }
   };
 
-  const handleLogin = async () => {
-    if (!usernameInput || !passwordInput) {
-      showToast(feedbackText.loginMissing, 'error');
-      return;
-    }
+  // Children sign in by first name only. If the server is unreachable they still play,
+  // with progress kept on this device.
+  const handleKidLogin = async (name) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/login`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: usernameInput, password: passwordInput })
+      const res = await fetch(`${API_BASE_URL}/api/kid-login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name })
       });
-      const data = await res.json();
-      if (data.success) {
-        const isAdmin = Boolean(data.isAdmin);
-        setCurrentUser({ username: data.username, score: data.score, isAdmin });
-        setAdminToken(isAdmin ? data.adminToken : null);
-        setAuthMode('READY');
-        setGameState('MENU');
-        setUsernameInput(''); setPasswordInput('');
-        showToast(feedbackText.loginSuccess, 'success');
-      } else { showToast(data.error, 'error'); }
-    } catch (e) { showToast(feedbackText.connectionError, 'error'); }
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) {
+        showToast(data.error === 'invalid_name' ? null : (data.error || feedbackText.serverError), 'error');
+        return null;
+      }
+      const user = { username: data.username, score: data.score || 0, isAdmin: false };
+      setCurrentUser(user);
+      setAdminToken(null);
+      setGameState('MENU');
+      return user;
+    } catch {
+      const user = { username: name, score: 0, isAdmin: false, offline: true };
+      setCurrentUser(user);
+      setAdminToken(null);
+      setGameState('MENU');
+      return user;
+    }
   };
 
-  const handleRegister = async () => {
-    if (!usernameInput || !passwordInput) {
-      showToast(feedbackText.registerMissing, 'error');
-      return;
-    }
+  const handleAdminLogin = async (username, password) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/register`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: usernameInput, password: passwordInput })
+      const res = await fetch(`${API_BASE_URL}/api/admin/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
       });
-      const data = await res.json();
-      if (data.success) {
-        const loginRes = await fetch(`${API_BASE_URL}/api/login`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username: usernameInput, password: passwordInput })
-        });
-        const loginData = await loginRes.json();
-        if (!loginRes.ok || !loginData.success) {
-          showToast(loginData.error || feedbackText.registerLoginFailed, 'error');
-          setAuthMode('LOGIN');
-          return;
-        }
-        const isAdmin = Boolean(loginData.isAdmin);
-        setCurrentUser({ username: loginData.username, score: loginData.score, isAdmin });
-        setAdminToken(isAdmin ? loginData.adminToken : null);
-        setAuthMode('READY');
-        setGameState('MENU');
-        setUsernameInput('');
-        setPasswordInput('');
-        showToast(feedbackText.accountCreated, 'success');
-      } else { showToast(data.error, 'error'); }
-    } catch (e) { showToast(feedbackText.serverError, 'error'); }
-  };
-
-  const fetchLeaderboard = async () => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/leaderboard`);
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data?.error || 'Не удалось загрузить рейтинг');
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) {
+        showToast(data.error || feedbackText.serverError, 'error');
+        return false;
       }
-      if (!Array.isArray(data)) {
-        throw new Error('Некорректный формат рейтинга');
-      }
-      setLeaderboard(data);
-      setGameState('LEADERBOARD');
-    } catch (e) {
-      console.error('Ошибка загрузки рейтинга', e);
-      showToast(e.message || 'Не удалось загрузить рейтинг', 'error');
+      setCurrentUser({ username: data.username, score: 0, isAdmin: true });
+      setAdminToken(data.adminToken);
+      setGameState('MENU');
+      showToast(feedbackText.loginSuccess, 'success');
+      return true;
+    } catch {
+      showToast(feedbackText.connectionError, 'error');
+      return false;
     }
   };
 
@@ -2094,7 +2002,7 @@ export default function App() {
           : currentLevel.id && !stickers.includes(currentLevel.id);
         const isFreshCompletion = Boolean(shouldRewardScore);
 
-        if (currentUser && shouldRewardScore) {
+        if (currentUser && !currentUser.offline && shouldRewardScore) {
           try {
             const res = await fetch(`${API_BASE_URL}/api/update-score`, {
               method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -2136,7 +2044,6 @@ export default function App() {
   const aiTutorVisible = ['PLAYING', 'MATH_PLAYING', 'SYLLABLE_CLAP', 'RHYME_TIME', 'FIRST_SOUND'].includes(gameState);
   const aiTutorContext = useMemo(() => ({
     language: lang,
-    playerName: currentUser?.username || '',
     gameState,
     playMode,
     mathMode,
@@ -2155,7 +2062,6 @@ export default function App() {
     currentLevel?.difficulty,
     currentLevel?.rarity,
     currentLevel?.syllableType,
-    currentUser?.username,
     displayText,
     foundLetters.length,
     gameState,
@@ -2179,7 +2085,7 @@ export default function App() {
   }[lang] || 'Поверни телефон горизонтально';
 
   return (
-    <div style={{ background: currentTheme.bg, minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', fontFamily: 'inherit' }}>
+    <div className={isLiteDevice ? 'll-lite' : undefined} style={{ background: currentTheme.bg, minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', fontFamily: 'inherit' }}>
       {isPortrait && isTouchLandscapeHintDevice && (
         <div className="rotate-overlay">
           <div className="rotate-phone-icon">📱</div>
@@ -2218,7 +2124,6 @@ export default function App() {
         onClose={closeChestReward}
       />
 
-      {gameState === 'LEADERBOARD' && <Leaderboard leaderboard={leaderboard} onClose={handleCloseOverlay} lang={lang} />}
       {gameState === 'ACHIEVEMENTS' && <Achievements achievements={effectiveAchievements} allAchievementsList={allAchievementsList} onClose={handleCloseOverlay} lang={lang} />}
       {gameState === 'ADMIN' && (
         <AdminPanel
@@ -2243,31 +2148,17 @@ export default function App() {
       {gameState === 'SETTINGS' && <SettingsScreen lang={lang} onClose={handleCloseOverlay} speechRate={speechRate} setSpeechRate={setSpeechRate} toggleMusic={toggleMusic} isMusicOn={isMusicOn} musicVolume={musicVolume} onMusicVolumeChange={handleMusicVolumeChange} speechEngineStatus={speechEngineStatus} speechRuntimeStatus={speechRuntimeStatus} theme={theme} setTheme={setTheme} currentUser={currentUser} handleResetProgress={handleResetProgress} handleLogout={handleLogout} />}
 
       {gameState === 'MENU' && (
-        <MainMenu 
-          lang={lang} setLang={handleLanguageChange}
-          setCurrentIdx={setCurrentIdx}
-          playMode={playMode} setPlayMode={setPlayMode}
-          mathMode={mathMode} setMathMode={setMathMode}
-          setGameState={setGameState} 
+        <MainMenu
+          lang={lang}
+          setLang={handleLanguageChange}
+          setPlayMode={setPlayMode}
+          setMathMode={setMathMode}
+          setGameState={setGameState}
           currentUser={currentUser}
-          winStreak={winStreak}
-          nextChestIn={nextChestIn}
-          rewardCollectionCount={rewardCollection.length}
-          mathCollectionCount={mathCollection.length}
-          mathPreviewRewards={mathCollection.slice(-4)}
-          seasonEvent={seasonEvent}
-          hasPendingChest={Boolean(chestQueue.length)}
           handleLogout={handleLogout}
-          handleResetProgress={handleResetProgress}
-          authMode={authMode} setAuthMode={setAuthMode}
-          usernameInput={usernameInput} setUsernameInput={setUsernameInput}
-          passwordInput={passwordInput} setPasswordInput={setPasswordInput}
-          selectedGame={menuSelectedGame}
-          setSelectedGame={setMenuSelectedGame}
-          showToast={showToast}
-          handleLogin={handleLogin} handleRegister={handleRegister}
-          fetchLeaderboard={fetchLeaderboard} toggleMusic={toggleMusic} isMusicOn={isMusicOn}
-          apiBaseUrl={API_BASE_URL}
+          handleKidLogin={handleKidLogin}
+          handleAdminLogin={handleAdminLogin}
+          speakText={speakText}
         />
       )}
 

@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { DndContext, MouseSensor, TouchSensor, useDraggable, useDroppable, useSensor, useSensors } from '@dnd-kit/core';
 import confetti from 'canvas-confetti';
-import { CatBuddy3D } from './CatBuddy3D';
+import { Irbi } from './Irbi';
 
-const MATH_MODE_ORDER = ['COUNT_FRUITS', 'FEED_MONSTER', 'BIGGER_NUMBER', 'MATCH_PAIR', 'SPEED_ROUND', 'MISSING_NUMBER'];
+const MATH_MODE_ORDER = ['COUNT_FRUITS', 'FEED_MONSTER', 'BIGGER_NUMBER', 'MATCH_PAIR', 'MISSING_NUMBER'];
 const VISUAL_SET = ['🍎', '🍐', '🍌', '🍊', '🍒', '🍇', '🥕', '⭐', '⚽', '🧸'];
 const NUM_GRADIENTS = [
   ['#ff6b6b','#feca57'],['#ff9f43','#ffd166'],['#48dbfb','#74b9ff'],['#1dd1a1','#00b894'],
@@ -1121,7 +1121,7 @@ export function MiniMathScreen({
           <div className="math-coach-card cat-coach-card">
             <div className="math-coach-head">
               <div className="math-coach-avatar cat-coach-avatar">
-                <CatBuddy3D mood="happy" speaking />
+                <Irbi mood="happy" size={92} />
               </div>
               <div>
                 <div className="math-coach-title">{text.coach}</div>
@@ -1368,7 +1368,10 @@ export function MiniMathScreen({
         <div className="math-coach-card cat-coach-card">
           <div className="math-coach-head">
             <div className="math-coach-avatar cat-coach-avatar">
-              <CatBuddy3D mood={coachMood} speaking={hintVisible && status !== 'correct'} />
+              <Irbi
+                mood={status === 'correct' ? 'cheer' : hintVisible ? 'talking' : coachMood === 'thinking' ? 'thinking' : 'idle'}
+                size={92}
+              />
             </div>
             <div>
               <div className="math-coach-title">{text.coach}</div>

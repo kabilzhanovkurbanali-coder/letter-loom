@@ -12,9 +12,11 @@ const mockWords = {
 describe('App', () => {
   beforeEach(() => {
     window.localStorage.clear();
-    global.fetch = jest.fn().mockResolvedValue({
-      ok: true,
-      json: async () => mockWords
+    global.fetch = jest.fn().mockImplementation(async (url) => {
+      if (String(url).includes('/api/kid-login')) {
+        return { ok: true, json: async () => ({ success: true, username: 'Айбек', score: 7 }) };
+      }
+      return { ok: true, json: async () => mockWords };
     });
   });
 
@@ -37,28 +39,37 @@ describe('App', () => {
   test('switches menu language to English', async () => {
     render(<App />);
 
-    await waitFor(() => {
-      expect(screen.getByText(/выберите, как начать/i)).toBeInTheDocument();
-    });
+    expect(await screen.findByText(/привет! я ирби/i)).toBeInTheDocument();
 
-    await userEvent.click(screen.getByRole('button', { name: /выбор языка/i }));
-    await userEvent.click(screen.getByRole('button', { name: /english/i }));
+    await userEvent.click(screen.getByRole('button', { name: 'Eng' }));
 
-    expect(screen.getByText(/choose how to start/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument();
+    expect(screen.getByText(/i'm irbi/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /play/i })).toBeInTheDocument();
   });
 
   test('switches menu language to Uzbek', async () => {
     render(<App />);
 
-    await waitFor(() => {
-      expect(screen.getByText(/выберите, как начать/i)).toBeInTheDocument();
-    });
+    expect(await screen.findByText(/привет! я ирби/i)).toBeInTheDocument();
 
-    await userEvent.click(screen.getByRole('button', { name: /выбор языка/i }));
-    await userEvent.click(screen.getByRole('button', { name: /o'zbekcha/i }));
+    await userEvent.click(screen.getByRole('button', { name: 'O‘zb' }));
 
-    expect(screen.getByText(/qanday boshlashni tanlang/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /kirish/i })).toBeInTheDocument();
+    expect(screen.getByText(/men irbiman/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /o‘ynash/i })).toBeInTheDocument();
+  });
+
+  test('a child signs in with just a name and sees the games', async () => {
+    render(<App />);
+
+    await userEvent.type(await screen.findByPlaceholderText(/твоё имя/i), 'Айбек');
+    await userEvent.click(screen.getByRole('button', { name: /играть/i }));
+
+    expect(await screen.findByText(/собери слово/i)).toBeInTheDocument();
+    expect(screen.getByText('Айбек')).toBeInTheDocument();
+    expect(global.fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/api/kid-login'),
+      expect.objectContaining({ body: JSON.stringify({ name: 'Айбек' }) })
+    );
+    expect(JSON.parse(window.localStorage.getItem('ll_profiles'))).toEqual(['Айбек']);
   });
 });

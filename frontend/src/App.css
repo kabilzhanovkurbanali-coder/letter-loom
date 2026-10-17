@@ -1,7 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Neucha&display=swap');
-
 :root {
-  --font-ui: 'Neucha', 'Comic Sans MS', 'Trebuchet MS', cursive;
+  --font-ui: 'Nunito Variable', 'Nunito', 'Trebuchet MS', sans-serif;
 }
 
 body {
@@ -9,7 +7,6 @@ body {
   padding: 0;
   font-family: var(--font-ui);
   overflow-x: hidden;
-  letter-spacing: 0.02em;
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -439,8 +436,8 @@ select {
   position: relative;
   right: auto;
   bottom: auto;
-  width: 238px;
-  height: 228px;
+  width: 170px;
+  height: 176px;
   display: grid;
   place-items: center;
   border: none;
@@ -459,7 +456,7 @@ select {
 /* ── AI Chat Panel ── */
 .ai-tutor-chat-panel {
   position: absolute;
-  bottom: 230px;
+  bottom: 180px;
   right: 0;
   width: min(320px, calc(100vw - 28px));
   background: linear-gradient(180deg, rgba(255,248,235,0.98) 0%, rgba(255,232,204,0.97) 100%);

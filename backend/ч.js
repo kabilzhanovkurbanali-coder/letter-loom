@@ -13,7 +13,7 @@ const PORT = Number(process.env.PORT) || 5001;
 const BASE_URL = process.env.PUBLIC_BASE_URL || `http://localhost:${PORT}`;
 const HASH_PREFIX = 'scrypt';
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '1111';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
 const IS_ADMIN_AUTH_ENABLED = Boolean(ADMIN_PASSWORD);
 const TTS_CACHE_MAX_ENTRIES = Number(process.env.TTS_CACHE_MAX_ENTRIES || 800);
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
@@ -80,7 +80,7 @@ const FRONTEND_BUILD = path.join(__dirname, '..', 'frontend', 'build');
 
 app.use(cors());
 app.use(express.json());
-app.use('/images', express.static(path.join(__dirname, 'images')));
+app.use('/images', express.static(path.join(__dirname, 'images'), { maxAge: '30d' }));
 
 const hashPassword = (password) => {
   const salt = randomBytes(16).toString('hex');
@@ -160,7 +160,6 @@ const sanitizeAiContext = (rawContext) => {
     language: ['EN', 'RU', 'KG', 'UZ'].includes(String(context.language || '').toUpperCase())
       ? String(context.language).toUpperCase()
       : 'RU',
-    playerName: String(context.playerName || '').slice(0, 60),
     gameState: String(context.gameState || '').slice(0, 30),
     playMode: String(context.playMode || '').slice(0, 30),
     mathMode: String(context.mathMode || '').slice(0, 30),
@@ -372,6 +371,47 @@ app.post('/api/ai-tutor', async (req, res) => {
   }
 });
 
+// Children sign in with just their first name: no password, nothing else stored.
+const KID_NAME_PATTERN = /^[\p{L}\p{M}0-9' -]{1,24}$/u;
+const normalizeKidName = (rawName) => String(rawName || '').trim().replace(/\s+/g, ' ');
+
+app.post('/api/kid-login', async (req, res) => {
+  try {
+    const name = normalizeKidName(req.body?.name);
+    if (!KID_NAME_PATTERN.test(name)) {
+      return res.status(400).json({ error: 'invalid_name' });
+    }
+
+    const existing = await pool.query(
+      'SELECT username, score FROM users WHERE LOWER(username) = LOWER($1) ORDER BY id LIMIT 1',
+      [name]
+    );
+    if (existing.rows.length > 0) {
+      const user = existing.rows[0];
+      return res.json({ success: true, username: user.username, score: user.score });
+    }
+
+    const created = await pool.query(
+      'INSERT INTO users (username, password, score) VALUES ($1, $2, 0) RETURNING username, score',
+      [name, '']
+    );
+    return res.json({ success: true, username: created.rows[0].username, score: created.rows[0].score, isNew: true });
+  } catch (err) {
+    logAndReplyServerError(res, 'kid-login', err);
+  }
+});
+
+app.post('/api/admin/login', async (req, res) => {
+  const { username, password } = req.body || {};
+  if (!IS_ADMIN_AUTH_ENABLED) {
+    return res.status(503).json({ error: 'Админ-вход отключён: задайте ADMIN_PASSWORD в переменных окружения' });
+  }
+  if (username !== ADMIN_USERNAME || password !== ADMIN_PASSWORD) {
+    return res.status(401).json({ error: 'Неверный логин или пароль!' });
+  }
+  return res.json({ success: true, username, score: 0, isAdmin: true, adminToken: createAdminToken() });
+});
+
 app.post('/api/register', async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -459,7 +499,7 @@ app.post('/api/update-score', async (req, res) => {
   try {
     const { username, points } = req.body;
     const safePoints = Number(points);
-    if (!Number.isFinite(safePoints)) {
+    if (!Number.isFinite(safePoints) || safePoints < 0 || safePoints > 100) {
       return res.status(400).json({ error: 'Некорректные очки' });
     }
 

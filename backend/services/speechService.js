@@ -13,6 +13,9 @@ const MIME_BY_FORMAT = {
   opus: 'audio/ogg'
 };
 const execFileAsync = promisify(execFile);
+const ELEVEN_LANGUAGE_CODES = { EN: 'en', RU: 'ru', KG: 'ky', UZ: 'uz' };
+// Older multilingual models reject language_code; v2.5+ and v3/v4 accept it (v3/v4 also cover Kyrgyz and Uzbek).
+const ELEVEN_MODELS_WITH_LANGUAGE_CODE = /^eleven_(v3|v4|flash_v2_5|turbo_v2_5)/;
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 const clamp01 = (value, fallback) => {
@@ -335,6 +338,9 @@ class SpeechService {
       body: JSON.stringify({
         text,
         model_id: this.elevenLabsModelId,
+        ...(ELEVEN_MODELS_WITH_LANGUAGE_CODE.test(this.elevenLabsModelId)
+          ? { language_code: ELEVEN_LANGUAGE_CODES[normalizedLang] }
+          : {}),
         output_format: this.elevenLabsOutputFormat,
         voice_settings: {
           stability: this.elevenVoiceStability,

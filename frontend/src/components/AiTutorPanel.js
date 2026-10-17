@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { CatBuddy3D } from './CatBuddy3D';
+import { Irbi } from './Irbi';
 
 const panelText = {
   EN: {
@@ -140,12 +140,10 @@ export function AiTutorPanel({ lang, context, visible, speakText, apiBaseUrl }) 
   ].join('|');
 
   const catMood = isSpeaking
-    ? 'cheer'
+    ? 'talking'
     : context.gameState === 'MATH_PLAYING'
       ? 'thinking'
-      : context.gameState === 'PLAYING'
-        ? 'happy'
-        : 'cheer';
+      : 'idle';
 
   useEffect(() => () => {
     if (speakingTimerRef.current) window.clearTimeout(speakingTimerRef.current);
@@ -318,11 +316,7 @@ export function AiTutorPanel({ lang, context, visible, speakText, apiBaseUrl }) 
         aria-label={text.replay}
         onClick={handleCatClick}
       >
-        <CatBuddy3D
-          mood={catMood}
-          speaking={isSpeaking}
-          className="ai-tutor-toggle-cat"
-        />
+        <Irbi mood={catMood} size={140} className="ai-tutor-toggle-cat" />
       </button>
     </div>
   );

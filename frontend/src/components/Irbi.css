@@ -1,0 +1,198 @@
+.irbi {
+  --look-x: 0px;
+  --look-y: 0px;
+  position: relative;
+  flex-shrink: 0;
+  filter: drop-shadow(0 10px 18px rgba(40, 60, 110, 0.18));
+}
+
+.irbi svg {
+  overflow: visible;
+  display: block;
+}
+
+.irbi svg g,
+.irbi svg ellipse,
+.irbi svg path {
+  transform-box: fill-box;
+}
+
+.irbi-body {
+  transform-origin: 50% 100%;
+  animation: irbi-breathe 3.2s ease-in-out infinite;
+}
+
+.irbi-head {
+  transform-origin: 50% 90%;
+  animation: irbi-head-idle 6s ease-in-out infinite;
+}
+
+.irbi-tail {
+  transform-origin: 0% 100%;
+  animation: irbi-tail 2.8s ease-in-out infinite;
+}
+
+.irbi-ear-left {
+  transform-origin: 80% 90%;
+  animation: irbi-ear 7s ease-in-out infinite;
+}
+
+.irbi-ear-right {
+  transform-origin: 20% 90%;
+  animation: irbi-ear 7s ease-in-out 3.4s infinite;
+}
+
+.irbi-eye {
+  transform-origin: 50% 50%;
+  animation: irbi-blink 4.6s infinite;
+}
+
+.irbi-pupil {
+  transform: translate(var(--look-x), var(--look-y));
+  transition: transform 0.25s ease-out;
+}
+
+.irbi-brow {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.irbi-mouth-open {
+  opacity: 0;
+  transform-origin: 50% 0%;
+}
+
+.irbi-sparkles {
+  opacity: 0;
+}
+
+/* talking: mouth opens and closes, head nods gently */
+.irbi-mood-talking .irbi-mouth-closed {
+  opacity: 0;
+}
+
+.irbi-mood-talking .irbi-mouth-open {
+  opacity: 1;
+  animation: irbi-talk 0.32s ease-in-out infinite alternate;
+}
+
+.irbi-mood-talking .irbi-head {
+  animation: irbi-nod 0.9s ease-in-out infinite;
+}
+
+/* happy / cheer: closed smiling eyes, open smile, bounce, sparkles */
+.irbi-mood-happy .irbi-mouth-closed,
+.irbi-mood-cheer .irbi-mouth-closed {
+  opacity: 0;
+}
+
+.irbi-mood-happy .irbi-mouth-open,
+.irbi-mood-cheer .irbi-mouth-open {
+  opacity: 1;
+}
+
+.irbi-mood-happy .irbi-bounce {
+  animation: irbi-hop 0.7s ease-in-out 3;
+}
+
+.irbi-mood-cheer .irbi-bounce {
+  animation: irbi-jump 0.55s cubic-bezier(0.3, 0, 0.4, 1) infinite alternate;
+}
+
+.irbi-mood-happy .irbi-tail,
+.irbi-mood-cheer .irbi-tail {
+  animation-duration: 0.7s;
+}
+
+.irbi-mood-happy .irbi-sparkles,
+.irbi-mood-cheer .irbi-sparkles {
+  animation: irbi-sparkle 1.2s ease-in-out infinite;
+}
+
+.irbi-mood-happy .irbi-blush,
+.irbi-mood-cheer .irbi-blush {
+  opacity: 0.75;
+}
+
+/* thinking: head tilt, eyes look up, brows show */
+.irbi-mood-thinking .irbi-head {
+  animation: none;
+  transform: rotate(-8deg);
+  transition: transform 0.4s ease;
+}
+
+.irbi-mood-thinking .irbi-pupil {
+  transform: translate(3px, -4px);
+}
+
+.irbi-mood-thinking .irbi-brow {
+  opacity: 1;
+}
+
+@keyframes irbi-breathe {
+  0%, 100% { transform: scale(1, 1); }
+  50% { transform: scale(1.025, 0.975); }
+}
+
+@keyframes irbi-head-idle {
+  0%, 100% { transform: rotate(0deg); }
+  30% { transform: rotate(-3deg); }
+  60% { transform: rotate(2deg); }
+}
+
+@keyframes irbi-nod {
+  0%, 100% { transform: rotate(-1.5deg) translateY(0); }
+  50% { transform: rotate(1.5deg) translateY(1.5px); }
+}
+
+@keyframes irbi-tail {
+  0%, 100% { transform: rotate(-4deg); }
+  50% { transform: rotate(9deg); }
+}
+
+@keyframes irbi-ear {
+  0%, 88%, 100% { transform: rotate(0deg); }
+  91% { transform: rotate(-12deg); }
+  94% { transform: rotate(6deg); }
+}
+
+@keyframes irbi-blink {
+  0%, 93%, 100% { transform: scaleY(1); }
+  95% { transform: scaleY(0.1); }
+}
+
+@keyframes irbi-talk {
+  from { transform: scaleY(0.35); }
+  to { transform: scaleY(1); }
+}
+
+@keyframes irbi-hop {
+  0%, 100% { transform: translateY(0) scale(1, 1); }
+  20% { transform: translateY(0) scale(1.06, 0.94); }
+  55% { transform: translateY(-16px) scale(0.97, 1.03); }
+}
+
+@keyframes irbi-jump {
+  from { transform: translateY(0) scale(1.04, 0.96); }
+  to { transform: translateY(-22px) scale(0.98, 1.02); }
+}
+
+@keyframes irbi-sparkle {
+  0%, 100% { opacity: 0; transform: scale(0.6); }
+  50% { opacity: 1; transform: scale(1.1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .irbi *,
+  .irbi {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+.ll-lite .irbi-head,
+.ll-lite .irbi-ear-left,
+.ll-lite .irbi-ear-right,
+.ll-lite .irbi-body {
+  animation: none;
+}

@@ -12,13 +12,15 @@ root.render(
   </React.StrictMode>
 );
 
-if ('serviceWorker' in navigator) {
+// Offline support: the service worker keeps the app, pictures and voice on the tablet.
+// Browsers only allow it on https or localhost; elsewhere the game simply stays online-only.
+if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production' && window.isSecureContext) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.getRegistrations().then((registrations) => {
-      registrations.forEach((registration) => registration.unregister());
-    }).catch((error) => {
-      console.error('Service worker cleanup failed:', error);
+    navigator.serviceWorker.register('/service-worker.js').catch((error) => {
+      console.warn('Offline mode is unavailable:', error);
     });
+    // ask the browser not to evict the cached voice when the tablet runs low on space
+    navigator.storage?.persist?.().catch(() => {});
   });
 }
 reportWebVitals();

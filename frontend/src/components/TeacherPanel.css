@@ -230,6 +230,61 @@
   font-size: 1.1rem;
 }
 
+.tp-offline {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--tp-bg);
+  border: 1px solid var(--tp-line);
+}
+
+.tp-offline h3 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 900;
+}
+
+.tp-offline p {
+  margin: 0;
+  color: var(--tp-soft);
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.tp-offline .tp-offline-note {
+  color: var(--tp-warn);
+}
+
+.tp-progress {
+  position: relative;
+  height: 26px;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #e3e8f3;
+}
+
+.tp-progress-bar {
+  position: absolute;
+  inset: 0;
+  transform-origin: left center;
+  transform: scaleX(var(--p));
+  background: linear-gradient(90deg, #7fb0ff, var(--tp-accent));
+  transition: transform 0.2s linear;
+}
+
+.tp-progress-text {
+  position: relative;
+  display: block;
+  padding: 0 8px;
+  line-height: 26px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--tp-ink);
+}
+
 .tp-privacy {
   display: flex;
   gap: 8px;

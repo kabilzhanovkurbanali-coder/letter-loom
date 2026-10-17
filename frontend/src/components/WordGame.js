@@ -4,6 +4,7 @@ import { GameBoard, GameShell, NextButton } from './GameShell';
 import { normalizeImageUrl, pictureUrl } from '../lib/api';
 import { ALPHABET_UNITS, getLetterName } from '../lib/letters';
 import { isLevelLocked, recordSession, recordTask } from '../lib/progress';
+import { LABEL_KEYS, sayPhrase, textPhrases, wordPhrase } from '../lib/voicePack';
 import { sfxBoop, sfxPick, sfxPlace, sfxTada, sfxWhoosh } from '../lib/sfx';
 import './WordGame.css';
 
@@ -654,3 +655,27 @@ function LetterTile({ tile, index, isHint, isNudged, disabled, onTap, onDrop }) 
     </div>
   );
 }
+
+// Everything the word games can say in `lang`, for the offline voice pack.
+export const voicePhrases = (lang, { words = [], syllables = [] } = {}) => {
+  const t = TEXT[lang] || TEXT.RU;
+  const out = textPhrases(t, [...LABEL_KEYS, 'build', 'buildSyllables', 'findLetter', 'findSyllable']);
+  const letters = new Set(ALPHABET_UNITS[lang] || ALPHABET_UNITS.RU);
+  const syllableUnits = new Set();
+  words.forEach((word) => {
+    out.push(sayPhrase(`${t.build}: ${spokenWord(word)}`), wordPhrase(spokenWord(word), SPEAK_WORD));
+    unitsOf(word).forEach((unit) => letters.add(unit));
+  });
+  syllables.forEach((word) => {
+    const units = unitsOf(word);
+    out.push(
+      sayPhrase(`${t.buildSyllables}: ${spokenWord(word)}`),
+      wordPhrase(spokenWord(word), SPEAK_WORD),
+      wordPhrase(`${units.map((unit) => unit.toLowerCase()).join(', ')}. ${spokenWord(word)}!`, SPEAK_WORD)
+    );
+    units.forEach((unit) => syllableUnits.add(unit));
+  });
+  letters.forEach((unit) => out.push(wordPhrase(unit, SPEAK_TOKEN), sayPhrase(`${t.findLetter}: ${getLetterName(lang, unit)}`)));
+  syllableUnits.forEach((unit) => out.push(wordPhrase(unit, SPEAK_TOKEN), sayPhrase(`${t.findSyllable}: ${unit.toLowerCase()}`)));
+  return out;
+};

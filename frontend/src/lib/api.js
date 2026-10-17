@@ -8,12 +8,16 @@ const resolveApiBaseUrl = () => {
   }
 
   const browserHost = window.location.hostname;
-  const fallback = `${window.location.protocol}//${browserHost}:5001`;
+  // The production build is served by the backend itself, so the API lives on the same origin
+  // (whatever address or https port the tablet used). Only the dev server on :3000 talks to :5001.
+  const isDevServer = window.location.port === '3000';
+  const fallback = isDevServer ? `${window.location.protocol}//${browserHost}:5001` : window.location.origin;
   if (!configured) return fallback;
   if (configured.startsWith('/')) return configured;
 
   try {
     const parsed = new URL(configured);
+    if (LOCAL_HOSTS.has(parsed.hostname) && !isDevServer) return fallback;
     if (LOCAL_HOSTS.has(parsed.hostname) && !LOCAL_HOSTS.has(browserHost)) {
       const port = parsed.port || '5001';
       return `${parsed.protocol}//${browserHost}:${port}`;

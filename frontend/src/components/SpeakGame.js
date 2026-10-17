@@ -3,6 +3,7 @@ import confetti from 'canvas-confetti';
 import { GameBoard, GameShell, NextButton } from './GameShell';
 import { pictureUrl } from '../lib/api';
 import { isLevelLocked, recordSession, recordTask } from '../lib/progress';
+import { LABEL_KEYS, sayPhrase, textPhrases, wordPhrase } from '../lib/voicePack';
 import { sfxNote, sfxPlace, sfxTada, sfxWhoosh } from '../lib/sfx';
 import { createBlowDetector, createSpeechDetector, isMicSupported, openVoiceMeter } from '../lib/voiceMeter';
 import { approvedSyllables } from '../data/approvedSyllables';
@@ -546,3 +547,17 @@ export function SpeakGame({ lang, activity: rawActivity, userKey, speakText, pre
     </GameShell>
   );
 }
+
+// Everything the speech games can say in `lang`, for the offline voice pack.
+export const voicePhrases = (lang) => {
+  const t = TEXT[lang] || TEXT.RU;
+  const out = textPhrases(t, [...LABEL_KEYS, 'together']);
+  const say = (speech) => out.push(wordPhrase(speech, { kind: 'word', rate: 0.8 }), sayPhrase(`${t.together} ${speech}`));
+  ECHO_ITEMS.forEach((item) => say(speechForUnits(item.units[lang] || item.units.RU)));
+  (approvedSyllables[lang] || []).forEach((entry) => {
+    if (!imageKeyFromPath(entry.img) || !entry.units?.length) return;
+    say(entry.units.join('').toLowerCase());
+    entry.units.forEach((unit) => out.push(wordPhrase(unit.toLowerCase(), { kind: 'syllable', rate: 0.8 })));
+  });
+  return out;
+};

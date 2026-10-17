@@ -3,6 +3,7 @@ import confetti from 'canvas-confetti';
 import { GameBoard, GameShell, NextButton } from './GameShell';
 import { pictureUrl } from '../lib/api';
 import { isLevelLocked, recordSession, recordTask } from '../lib/progress';
+import { LABEL_KEYS, sayPhrase, textPhrases, wordPhrase } from '../lib/voicePack';
 import { sfxBoop, sfxPick, sfxPlace, sfxTada, sfxWhoosh } from '../lib/sfx';
 import './MemoryGame.css';
 
@@ -540,3 +541,14 @@ export function MemoryGame({ lang, activity: rawActivity, vocabulary, userKey, s
     </GameShell>
   );
 }
+
+// Everything the memory games can say in `lang`, for the offline voice pack.
+export const voicePhrases = (lang, { words = [] } = {}) => {
+  const out = textPhrases(TEXT[lang] || TEXT.RU, LABEL_KEYS);
+  words.slice(0, MEMORY_VOCABULARY_SIZE).forEach((item) => {
+    if (!item?.image || !item?.text) return;
+    const text = String(item.text).replace(/-/g, '').toLowerCase();
+    out.push(wordPhrase(text, { kind: 'word', rate: 0.85 }), sayPhrase(`${text}!`));
+  });
+  return out;
+};

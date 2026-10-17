@@ -3,6 +3,7 @@ import confetti from 'canvas-confetti';
 import { GameBoard, GameShell, NextButton } from './GameShell';
 import { pictureUrl } from '../lib/api';
 import { isLevelLocked, recordSession, recordTask } from '../lib/progress';
+import { LABEL_KEYS, sayPhrase, textPhrases, wordPhrase } from '../lib/voicePack';
 import { sfxBoop, sfxNote, sfxPick, sfxPlace, sfxTada } from '../lib/sfx';
 import './LogicGame.css';
 
@@ -772,3 +773,28 @@ export function LogicGame({ lang, activity: rawActivity, vocabulary, userKey, sp
     </GameShell>
   );
 }
+
+// Everything the logic games can say in `lang`, for the offline voice pack.
+export const voicePhrases = (lang, { words = [] } = {}) => {
+  const t = TEXT[lang] || TEXT.RU;
+  const asWord = { kind: 'word', rate: 0.85 };
+  const out = textPhrases(t, LABEL_KEYS);
+  Object.values(t.rest).forEach((phrase) => out.push(sayPhrase(phrase)));
+  [t.colors, t.shapes, t.sizes].forEach((table) => Object.values(table).forEach((name) => out.push(wordPhrase(name, asWord))));
+  const wordByImage = {};
+  words.forEach((item) => {
+    if (item?.image && item?.text) wordByImage[item.image] = String(item.text).replace(/-/g, '').toLowerCase();
+  });
+  Object.values(wordByImage).forEach((name) => out.push(wordPhrase(name, asWord)));
+  // the odd picture is named together with what the others have in common
+  Object.entries(GROUPS).forEach(([group, images]) => {
+    images.forEach((image) => {
+      const name = wordByImage[image];
+      if (!name) return;
+      Object.keys(GROUPS).filter((other) => other !== group).forEach((other) => {
+        out.push(sayPhrase(`${capitalize(name)}! ${t.rest[other]}`));
+      });
+    });
+  });
+  return out;
+};

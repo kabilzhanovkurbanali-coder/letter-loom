@@ -8,18 +8,19 @@ import { approvedSyllables } from './data/approvedSyllables';
 import { StickerAlbum } from './components/StickerAlbum';
 import { AdminPanel } from './components/AdminPanel';
 import { Achievements } from './components/Achievements';
-import { MainMenu } from './components/MainMenu';
-import { WordGame } from './components/WordGame';
-import { MathGame } from './components/MathGame';
+import { MainMenu, menuVoicePhrases } from './components/MainMenu';
+import { WordGame, voicePhrases as wordVoicePhrases } from './components/WordGame';
+import { MathGame, voicePhrases as mathVoicePhrases } from './components/MathGame';
 import { AlphabetScreen } from './components/AlphabetScreen';
 import { SettingsScreen } from './components/SettingsScreen';
 import { RewardChestModal } from './components/RewardChestModal';
 import { AiTutorPanel } from './components/AiTutorPanel';
-import { MemoryGame } from './components/MemoryGame';
-import { LogicGame } from './components/LogicGame';
-import { SpeakGame } from './components/SpeakGame';
+import { MemoryGame, voicePhrases as memoryVoicePhrases } from './components/MemoryGame';
+import { LogicGame, voicePhrases as logicVoicePhrases } from './components/LogicGame';
+import { SpeakGame, voicePhrases as speakVoicePhrases } from './components/SpeakGame';
 import { TeacherPanel } from './components/TeacherPanel';
 import { rememberProfile } from './lib/progress';
+import { downloadPhrases, uniquePhrases } from './lib/voicePack';
 import { SoundQuizScreen } from './components/SoundQuizScreen';
 import { ColorByNumberScreen } from './components/ColorByNumberScreen';
 import { SyllableClapScreen } from './components/SyllableClapScreen';
@@ -1310,6 +1311,27 @@ export default function App() {
     void speakRemoteText(text, requestOptions).catch(handleRemoteError);
   };
 
+  // Teacher mode: fetch the voice of every phrase in the current language (and the pictures) once,
+  // so the service worker on the tablet and the server's disk cache can play them without internet.
+  const prepareOffline = async (onProgress) => {
+    navigator.serviceWorker?.controller?.postMessage('cache-pictures');
+    const phrases = uniquePhrases([
+      ...menuVoicePhrases(lang),
+      ...wordVoicePhrases(lang, { words: wordsByLang[lang] || [], syllables: syllablesByLang[lang] || [] }),
+      ...mathVoicePhrases(lang),
+      ...memoryVoicePhrases(lang, { words }),
+      ...logicVoicePhrases(lang, { words }),
+      ...speakVoicePhrases(lang)
+    ]);
+    return downloadPhrases(phrases, async ({ text, options }) => {
+      const remoteText = normalizeSpeechText(text, { ...options, engine: 'remote' });
+      if (!remoteText) return;
+      const response = await fetch(buildRemoteSpeechStreamUrl(remoteText, { playbackRate: resolveSpeechRate(options.rate) }));
+      if (!response.ok) throw new Error(`speech ${response.status}`);
+      await response.arrayBuffer();
+    }, onProgress);
+  };
+
   const handleLanguageChange = (nextLang) => {
     if (!nextLang || nextLang === lang) return;
     setSpeechRuntimeStatus('IDLE');
@@ -1923,6 +1945,7 @@ export default function App() {
       {gameState === 'TEACHER' && (
         <TeacherPanel
           lang={lang}
+          onPrepareOffline={prepareOffline}
           onClose={() => setGameState('MENU')}
           onPlayAs={async (name) => {
             const user = await handleKidLogin(name);

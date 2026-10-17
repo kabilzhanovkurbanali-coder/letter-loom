@@ -15,7 +15,8 @@ const HASH_PREFIX = 'scrypt';
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
 const IS_ADMIN_AUTH_ENABLED = Boolean(ADMIN_PASSWORD);
-const TTS_CACHE_MAX_ENTRIES = Number(process.env.TTS_CACHE_MAX_ENTRIES || 800);
+// a full voice pack for four languages is a few thousand short phrases
+const TTS_CACHE_MAX_ENTRIES = Number(process.env.TTS_CACHE_MAX_ENTRIES || 20000);
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
 const OPENAI_MODEL = process.env.OPENAI_MODEL || 'gpt-5-mini';
 const OPENAI_API_BASE_URL = process.env.OPENAI_API_BASE_URL || 'https://api.openai.com/v1';
@@ -45,6 +46,9 @@ const adminTokens = new Set();
 const TTS_CACHE_DIR = path.join(__dirname, '.cache', 'tts');
 const EDGE_TTS_SCRIPT_PATH = path.join(__dirname, 'tts_edge_once.py');
 let httpServer = null;
+let httpsServer = null;
+const HTTPS_PORT = Number(process.env.HTTPS_PORT) || 5443;
+const CERT_DIR = path.join(__dirname, 'certs');
 let isShuttingDown = false;
 
 const speechService = new SpeechService({
@@ -585,12 +589,41 @@ app.delete('/api/admin/users/:id', async (req, res) => {
 });
 
 const fspSync = require('fs');
+
+// Everything the tablet should keep for offline play: the 3D pictures (the app shell comes from the build).
+app.get('/api/offline-manifest', (req, res) => {
+  try {
+    const images = fspSync.readdirSync(path.join(__dirname, 'images'))
+      .filter((name) => name.endsWith('.webp'))
+      .map((name) => `/images/${name}`);
+    res.setHeader('Cache-Control', 'no-store');
+    return res.json({ images });
+  } catch (err) {
+    return logAndReplyServerError(res, 'offline-manifest', err);
+  }
+});
+
 if (fspSync.existsSync(FRONTEND_BUILD)) {
   app.use(express.static(FRONTEND_BUILD));
   app.get(/^(?!\/api\/|\/images\/).*$/, (req, res) => {
     res.sendFile(path.join(FRONTEND_BUILD, 'index.html'));
   });
 }
+
+// Tablets only allow the microphone and offline mode on https. When certs/key.pem and certs/cert.pem
+// exist (see scripts/make-cert.sh), the same app is also served over https on HTTPS_PORT.
+const startHttpsServer = () => {
+  const keyPath = path.join(CERT_DIR, 'key.pem');
+  const certPath = path.join(CERT_DIR, 'cert.pem');
+  if (!fspSync.existsSync(keyPath) || !fspSync.existsSync(certPath)) return;
+  try {
+    const https = require('https');
+    httpsServer = https.createServer({ key: fspSync.readFileSync(keyPath), cert: fspSync.readFileSync(certPath) }, app);
+    httpsServer.listen(HTTPS_PORT, () => console.log(`[https] Сервер также доступен по https на порту ${HTTPS_PORT}`));
+  } catch (err) {
+    console.error('[https] Не удалось запустить https:', err.message);
+  }
+};
 
 const startServer = async () => {
   try {
@@ -609,6 +642,7 @@ const startServer = async () => {
         console.warn('[admin] ADMIN_PASSWORD не задан, админ-вход отключён');
       }
     });
+    startHttpsServer();
   } catch (err) {
     console.error('Ошибка подключения к БД:', err.message);
     process.exit(1);
@@ -624,6 +658,7 @@ const stopServer = (signalName) => {
   isShuttingDown = true;
   console.warn(`[process] ${signalName} received, stopping backend gracefully`);
   shutdownWorker();
+  httpsServer?.close();
 
   if (!httpServer) {
     process.exit(0);

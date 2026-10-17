@@ -3,6 +3,7 @@ import confetti from 'canvas-confetti';
 import { GameBoard, GameShell, NextButton } from './GameShell';
 import { pictureUrl } from '../lib/api';
 import { isLevelLocked, recordSession, recordTask } from '../lib/progress';
+import { LABEL_KEYS, sayPhrase, textPhrases, wordPhrase } from '../lib/voicePack';
 import { sfxBoop, sfxPick, sfxPlace, sfxTada } from '../lib/sfx';
 import './MathGame.css';
 
@@ -555,3 +556,20 @@ function NumberChip({ value, big = false }) {
     <span className={`mg-chip ${big ? 'is-big' : ''}`} style={{ '--c1': c1, '--c2': c2, '--c3': c3 }}>{value}</span>
   );
 }
+
+// Everything the math games can say in `lang`, for the offline voice pack.
+export const voicePhrases = (lang) => {
+  const t = TEXT[lang] || TEXT.RU;
+  const words = NUMBER_WORDS[lang] || NUMBER_WORDS.RU;
+  const out = textPhrases(t, LABEL_KEYS);
+  for (let n = 1; n <= 10; n += 1) {
+    out.push(wordPhrase(words[n]), sayPhrase(`${words[n]}!`), sayPhrase(t.findNumber.replace('{n}', words[n])));
+    for (let b = 1; n + b <= 10; b += 1) {
+      out.push(
+        sayPhrase(t.add.replace('{a}', words[n]).replace('{b}', words[b])),
+        sayPhrase(t.addAnswer.replace('{a}', words[n]).replace('{b}', words[b]).replace('{s}', words[n + b]))
+      );
+    }
+  }
+  return out;
+};

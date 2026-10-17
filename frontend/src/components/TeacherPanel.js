@@ -19,6 +19,8 @@ const TEXT = {
     confirmReset: 'Reset all progress? This cannot be undone.', confirmRemove: 'Remove from the list and delete progress on this device?',
     yes: 'Yes', cancel: 'Cancel',
     privacy: 'All data stays on this device. The microphone records nothing.',
+    offlineTitle: 'Offline use', offlineHint: 'Downloads the voice for every task in {lang} and all the pictures. For another language, switch the language and repeat.', offlineGo: 'Download', offlineProgress: '{done} of {total}',
+    offlineDone: 'Done! The voice is saved.', offlineFailed: 'Not downloaded: {n}. Check the internet and try again.', offlineNoSw: 'To play without internet on the tablet itself, open the game over https.', langName: 'English',
     modules: { letters: 'Letters and words', speech: 'Speech', math: 'Math', memory: 'Memory', logic: 'Logic' }
   },
   RU: {
@@ -32,6 +34,8 @@ const TEXT = {
     confirmReset: 'Сбросить весь прогресс? Это нельзя отменить.', confirmRemove: 'Убрать из списка и удалить прогресс на этом устройстве?',
     yes: 'Да', cancel: 'Отмена',
     privacy: 'Все данные хранятся только на этом устройстве. Микрофон ничего не записывает.',
+    offlineTitle: 'Работа без интернета', offlineHint: 'Скачает голос всех заданий ({lang}) и все картинки. Для другого языка переключите язык и повторите.', offlineGo: 'Скачать', offlineProgress: '{done} из {total}',
+    offlineDone: 'Готово! Голос сохранён.', offlineFailed: 'Не скачалось: {n}. Проверьте интернет и нажмите ещё раз.', offlineNoSw: 'Чтобы игра работала без интернета прямо на планшете, откройте её по https.', langName: 'русский',
     modules: { letters: 'Буквы и слова', speech: 'Произношение', math: 'Математика', memory: 'Память', logic: 'Логика' }
   },
   KG: {
@@ -45,6 +49,8 @@ const TEXT = {
     confirmReset: 'Бардык прогрессти тазалайсызбы? Муну кайтаруу мүмкүн эмес.', confirmRemove: 'Тизмеден алып, ушул түзмөктөгү прогрессти өчүрөсүзбү?',
     yes: 'Ооба', cancel: 'Жокко чыгаруу',
     privacy: 'Бардык маалымат ушул түзмөктө гана сакталат. Микрофон эч нерсе жазбайт.',
+    offlineTitle: 'Интернетсиз иштөө', offlineHint: 'Бардык тапшырмалардын үнүн ({lang}) жана бардык сүрөттөрдү жүктөйт. Башка тил үчүн тилди алмаштырып, кайталаңыз.', offlineGo: 'Жүктөө', offlineProgress: '{total} ичинен {done}',
+    offlineDone: 'Даяр! Үн сакталды.', offlineFailed: 'Жүктөлгөн жок: {n}. Интернетти текшерип, кайра басыңыз.', offlineNoSw: 'Оюн планшетте интернетсиз иштеши үчүн аны https аркылуу ачыңыз.', langName: 'кыргызча',
     modules: { letters: 'Тамгалар жана сөздөр', speech: 'Сүйлөө', math: 'Математика', memory: 'Эс тутум', logic: 'Логика' }
   },
   UZ: {
@@ -58,6 +64,8 @@ const TEXT = {
     confirmReset: 'Barcha natijalar tozalansinmi? Buni qaytarib bo‘lmaydi.', confirmRemove: 'Ro‘yxatdan olib, shu qurilmadagi natijalarni o‘chirasizmi?',
     yes: 'Ha', cancel: 'Bekor qilish',
     privacy: 'Barcha ma’lumotlar faqat shu qurilmada saqlanadi. Mikrofon hech narsa yozib olmaydi.',
+    offlineTitle: 'Internetsiz ishlash', offlineHint: 'Barcha topshiriqlar ovozini ({lang}) va barcha rasmlarni yuklab oladi. Boshqa til uchun tilni almashtirib, qaytaring.', offlineGo: 'Yuklab olish', offlineProgress: '{total} tadan {done}',
+    offlineDone: 'Tayyor! Ovoz saqlandi.', offlineFailed: 'Yuklanmadi: {n}. Internetni tekshirib, qayta bosing.', offlineNoSw: 'O‘yin planshetda internetsiz ishlashi uchun uni https orqali oching.', langName: 'o‘zbekcha',
     modules: { letters: 'Harflar va so‘zlar', speech: 'Talaffuz', math: 'Matematika', memory: 'Xotira', logic: 'Mantiq' }
   }
 };
@@ -87,7 +95,7 @@ const summarize = (stats) => Object.values(stats.activities).reduce((sum, entry)
   sessions: sum.sessions + (entry.sessions || 0)
 }), { tasks: 0, sessions: 0 });
 
-export function TeacherPanel({ lang, onClose, onPlayAs }) {
+export function TeacherPanel({ lang, onClose, onPlayAs, onPrepareOffline }) {
   const t = TEXT[lang] || TEXT.RU;
   const menu = MENU_TEXT[lang] || MENU_TEXT.RU;
   const [profiles, setProfiles] = useState(readProfiles);
@@ -97,6 +105,15 @@ export function TeacherPanel({ lang, onClose, onPlayAs }) {
   const [confirm, setConfirm] = useState(null);
   // bumped after every change so derived numbers are re-read from storage
   const [version, setVersion] = useState(0);
+  const [offline, setOffline] = useState(null);
+  const hasOfflineWorker = typeof navigator !== 'undefined' && Boolean(navigator.serviceWorker?.controller);
+
+  const prepareOffline = async () => {
+    if (!onPrepareOffline || offline?.running) return;
+    setOffline({ running: true, done: 0, total: 0, failed: 0 });
+    const result = await onPrepareOffline((progress) => setOffline({ running: true, ...progress }));
+    setOffline({ running: false, ...result });
+  };
 
   const stats = useMemo(() => (selected ? readStats(selected) : null), [selected, version]); // eslint-disable-line react-hooks/exhaustive-deps
   const totals = useMemo(() => (stats ? summarize(stats) : null), [stats]);
@@ -186,6 +203,24 @@ export function TeacherPanel({ lang, onClose, onPlayAs }) {
           ) : (
             <p className="tp-empty">{t.noChildren}</p>
           )}
+          {onPrepareOffline ? (
+            <section className="tp-offline">
+              <h3>{t.offlineTitle}</h3>
+              <p>{t.offlineHint.replace('{lang}', t.langName)}</p>
+              {offline ? (
+                <div className="tp-progress" aria-live="polite">
+                  <span className="tp-progress-bar" style={{ '--p': offline.total ? offline.done / offline.total : 0 }} />
+                  <span className="tp-progress-text">
+                    {offline.running
+                      ? t.offlineProgress.replace('{done}', offline.done).replace('{total}', offline.total || '…')
+                      : (offline.failed ? t.offlineFailed.replace('{n}', offline.failed) : t.offlineDone)}
+                  </span>
+                </div>
+              ) : null}
+              <button type="button" className="tp-btn tp-btn-primary" onClick={prepareOffline} disabled={offline?.running}>{t.offlineGo}</button>
+              {!hasOfflineWorker ? <p className="tp-offline-note">{t.offlineNoSw}</p> : null}
+            </section>
+          ) : null}
           <p className="tp-privacy">
             <img src={pictureUrl('lock')} alt="" />
             {t.privacy}

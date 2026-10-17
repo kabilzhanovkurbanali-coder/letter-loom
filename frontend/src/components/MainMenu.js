@@ -3,6 +3,7 @@ import { Irbi } from './Irbi';
 import { ValleyScene } from './ValleyScene';
 import { pictureUrl } from '../lib/api';
 import { KID_NAME_PATTERN, readProfiles, rememberProfile as storeProfile } from '../lib/progress';
+import { sayPhrase } from '../lib/voicePack';
 import './MainMenu.css';
 
 const AVATARS = ['rabbit', 'fox', 'bear', 'panda', 'owl', 'frog', 'lion', 'tiger', 'koala', 'penguin', 'hedgehog', 'unicorn'];
@@ -547,3 +548,11 @@ function IconButton({ icon, label, onClick }) {
     </button>
   );
 }
+
+// What the menu says in `lang`, for the offline voice pack.
+export const menuVoicePhrases = (lang) => {
+  const text = MENU_TEXT[lang] || MENU_TEXT.RU;
+  return [text.greet, text.chooseGame, text.nameError, ...GAME_SECTIONS.flatMap((section) => section.games.map((game) => text[game.key]))]
+    .filter(Boolean)
+    .map(sayPhrase);
+};

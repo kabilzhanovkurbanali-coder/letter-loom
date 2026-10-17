@@ -5,3 +5,4 @@ backend/.cache/
 backend/server.log
 __pycache__/
 .DS_Store
+backend/certs/

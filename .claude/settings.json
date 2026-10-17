@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(export PATH=\"$HOME/.npm-global/bin:$PATH\")",
+      "Bash(pm2 status *)"
+    ]
+  }
+}

@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import confetti from 'canvas-confetti';
 import { GameBoard, GameShell, NextButton } from './GameShell';
 import { pictureUrl } from '../lib/api';
+import { isLevelLocked, recordSession, recordTask } from '../lib/progress';
 import { sfxBoop, sfxNote, sfxPick, sfxPlace, sfxTada } from '../lib/sfx';
 import './LogicGame.css';
 
@@ -430,6 +431,8 @@ export function LogicGame({ lang, activity: rawActivity, vocabulary, userKey, sp
   }, [taskSeq, activity]);
 
   const adaptLevel = (wasClean, wasHard) => {
+    recordTask(userKey, `logic:${activity}`, wasClean);
+    if (isLevelLocked(userKey)) return;
     let next = levelRef.current;
     if (wasClean) {
       streakRef.current += 1;
@@ -584,6 +587,7 @@ export function LogicGame({ lang, activity: rawActivity, vocabulary, userKey, sp
   const goNext = () => {
     if (sessionWins.length >= SESSION_SIZE) {
       setShowSession(true);
+      recordSession(userKey, `logic:${activity}`);
       sfxTada();
       confetti({ particleCount: 160, spread: 100, origin: { y: 0.55 }, disableForReducedMotion: true });
       say(t.sessionDone, 'cheer');

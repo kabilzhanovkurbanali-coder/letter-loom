@@ -3,6 +3,7 @@ import confetti from 'canvas-confetti';
 import { GameBoard, GameShell, NextButton } from './GameShell';
 import { normalizeImageUrl, pictureUrl } from '../lib/api';
 import { ALPHABET_UNITS, getLetterName } from '../lib/letters';
+import { isLevelLocked, recordSession, recordTask } from '../lib/progress';
 import { sfxBoop, sfxPick, sfxPlace, sfxTada, sfxWhoosh } from '../lib/sfx';
 import './WordGame.css';
 
@@ -267,6 +268,8 @@ export function WordGame({
 
   const adaptLevel = useCallback(() => {
     const mistakes = mistakesRef.current;
+    recordTask(userKey, `word:${mode}`, mistakes === 0);
+    if (isLevelLocked(userKey)) return;
     let next = levelRef.current;
     if (mistakes === 0) {
       streakRef.current += 1;
@@ -284,7 +287,7 @@ export function WordGame({
       setLevel(next);
       writeLevel(storageKey, next);
     }
-  }, [storageKey]);
+  }, [mode, storageKey, userKey]);
 
   const celebrate = useCallback(() => {
     if (!word) return;
@@ -443,6 +446,7 @@ export function WordGame({
   const goNext = () => {
     if (sessionWins.length >= SESSION_SIZE) {
       setShowSession(true);
+      recordSession(userKey, `word:${mode}`);
       sfxTada();
       confetti({ particleCount: 160, spread: 100, origin: { y: 0.55 }, disableForReducedMotion: true });
       say(t.sessionDone, 'cheer');

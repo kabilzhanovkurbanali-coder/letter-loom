@@ -18,6 +18,8 @@ import { AiTutorPanel } from './components/AiTutorPanel';
 import { MemoryGame } from './components/MemoryGame';
 import { LogicGame } from './components/LogicGame';
 import { SpeakGame } from './components/SpeakGame';
+import { TeacherPanel } from './components/TeacherPanel';
+import { rememberProfile } from './lib/progress';
 import { SoundQuizScreen } from './components/SoundQuizScreen';
 import { ColorByNumberScreen } from './components/ColorByNumberScreen';
 import { SyllableClapScreen } from './components/SyllableClapScreen';
@@ -1915,6 +1917,17 @@ export default function App() {
           prefetchSpeech={safePrefetchSpeech}
           onSessionComplete={handlePlaySessionComplete}
           onExit={() => setGameState('MENU')}
+        />
+      )}
+
+      {gameState === 'TEACHER' && (
+        <TeacherPanel
+          lang={lang}
+          onClose={() => setGameState('MENU')}
+          onPlayAs={async (name) => {
+            const user = await handleKidLogin(name);
+            if (user) rememberProfile(user.username);
+          }}
         />
       )}
 

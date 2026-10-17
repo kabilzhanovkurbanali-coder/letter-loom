@@ -318,6 +318,10 @@
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
+  /* a whole kindergarten group can share one tablet */
+  max-height: 290px;
+  overflow-y: auto;
+  padding: 4px;
 }
 
 .ll-profile {
@@ -603,6 +607,46 @@
   color: var(--ll-ink-soft);
   font-weight: 800;
   font-size: 1.05rem;
+}
+
+.ll-sheet-title img {
+  width: 34px;
+  height: 34px;
+  vertical-align: -6px;
+}
+
+.ll-gate-ask {
+  margin: 0;
+  text-align: center;
+  color: var(--ll-ink-soft);
+  font-weight: 700;
+}
+
+.ll-gate-sum {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: var(--ll-ink);
+}
+
+.ll-gate-input {
+  width: 110px;
+  text-align: center;
+  font-size: 1.6rem;
+}
+
+.ll-sheet-link {
+  align-self: center;
+  border: none;
+  background: none;
+  color: var(--ll-ink-soft);
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-decoration: underline;
 }
 
 .ll-field {

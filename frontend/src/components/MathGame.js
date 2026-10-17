@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import confetti from 'canvas-confetti';
 import { GameBoard, GameShell, NextButton } from './GameShell';
 import { pictureUrl } from '../lib/api';
+import { isLevelLocked, recordSession, recordTask } from '../lib/progress';
 import { sfxBoop, sfxPick, sfxPlace, sfxTada } from '../lib/sfx';
 import './MathGame.css';
 
@@ -289,6 +290,8 @@ export function MathGame({ lang, activity: rawActivity, userKey, speakText, pref
 
   const adaptLevel = () => {
     const mistakes = mistakesRef.current;
+    recordTask(userKey, `math:${activity}`, mistakes === 0);
+    if (isLevelLocked(userKey)) return;
     let next = levelRef.current;
     if (mistakes === 0) {
       streakRef.current += 1;
@@ -358,6 +361,7 @@ export function MathGame({ lang, activity: rawActivity, userKey, speakText, pref
   const goNext = () => {
     if (sessionWins.length >= SESSION_SIZE) {
       setShowSession(true);
+      recordSession(userKey, `math:${activity}`);
       sfxTada();
       confetti({ particleCount: 160, spread: 100, origin: { y: 0.55 }, disableForReducedMotion: true });
       say(t.sessionDone, 'cheer');

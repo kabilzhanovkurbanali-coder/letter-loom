@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import confetti from 'canvas-confetti';
 import { GameBoard, GameShell, NextButton } from './GameShell';
 import { pictureUrl } from '../lib/api';
+import { isLevelLocked, recordSession, recordTask } from '../lib/progress';
 import { sfxNote, sfxPlace, sfxTada, sfxWhoosh } from '../lib/sfx';
 import { createBlowDetector, createSpeechDetector, isMicSupported, openVoiceMeter } from '../lib/voiceMeter';
 import { approvedSyllables } from '../data/approvedSyllables';
@@ -272,6 +273,8 @@ export function SpeakGame({ lang, activity: rawActivity, userKey, speakText, pre
   }, [taskSeq, activity]);
 
   const adaptLevel = (wasClean, wasHard) => {
+    recordTask(userKey, `speak:${activity}`, wasClean);
+    if (isLevelLocked(userKey)) return;
     let next = levelRef.current;
     if (wasClean) {
       streakRef.current += 1;
@@ -417,6 +420,7 @@ export function SpeakGame({ lang, activity: rawActivity, userKey, speakText, pre
   const goNext = () => {
     if (sessionWins.length >= sessionSize) {
       setShowSession(true);
+      recordSession(userKey, `speak:${activity}`);
       sfxTada();
       confetti({ particleCount: 160, spread: 100, origin: { y: 0.55 }, disableForReducedMotion: true });
       say(t.sessionDone, 'cheer');

@@ -1,5 +1,6 @@
 import { render, fireEvent, act } from '@testing-library/react';
 import { LogicGame, buildLogicTask } from './LogicGame';
+import { readStats, setLevelLocked } from '../lib/progress';
 
 jest.mock('canvas-confetti', () => jest.fn());
 jest.mock('../lib/sfx', () => ({
@@ -97,5 +98,19 @@ describe('LogicGame', () => {
     act(() => { jest.advanceTimersByTime(600); });
     expect(document.querySelectorAll('.lg-bin-item')).toHaveLength(items.length);
     expect(document.querySelectorAll('.gs-star.is-on')).toHaveLength(1);
+  });
+
+  test('a teacher’s level lock keeps the level while tasks are still counted', () => {
+    setLevelLocked('kid', true);
+    renderGame('ODD');
+    for (let round = 0; round < 3; round += 1) {
+      const answer = document.querySelector('.lg-board').dataset.answer;
+      fireEvent.click(document.querySelector(`.lg-odd-item[data-id="${answer}"]`));
+      act(() => { jest.advanceTimersByTime(2500); });
+      fireEvent.click(document.querySelector('.gs-next'));
+      act(() => { jest.advanceTimersByTime(500); });
+    }
+    expect(localStorage.getItem('ll_logic_level_kid_ODD')).toBeNull();
+    expect(readStats('kid').activities['logic:ODD']).toMatchObject({ tasks: 3, clean: 3 });
   });
 });

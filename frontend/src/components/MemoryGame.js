@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import confetti from 'canvas-confetti';
 import { GameBoard, GameShell, NextButton } from './GameShell';
 import { pictureUrl } from '../lib/api';
+import { isLevelLocked, recordSession, recordTask } from '../lib/progress';
 import { sfxBoop, sfxPick, sfxPlace, sfxTada, sfxWhoosh } from '../lib/sfx';
 import './MemoryGame.css';
 
@@ -245,6 +246,8 @@ export function MemoryGame({ lang, activity: rawActivity, vocabulary, userKey, s
   }, [taskSeq, activity, words.length]);
 
   const adaptLevel = (wasClean, wasHard) => {
+    recordTask(userKey, `memory:${activity}`, wasClean);
+    if (isLevelLocked(userKey)) return;
     let next = levelRef.current;
     if (wasClean) {
       streakRef.current += 1;
@@ -376,6 +379,7 @@ export function MemoryGame({ lang, activity: rawActivity, vocabulary, userKey, s
   const goNext = () => {
     if (sessionWins.length >= sessionSize) {
       setShowSession(true);
+      recordSession(userKey, `memory:${activity}`);
       sfxTada();
       confetti({ particleCount: 160, spread: 100, origin: { y: 0.55 }, disableForReducedMotion: true });
       say(t.sessionDone, 'cheer');

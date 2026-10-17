@@ -2,10 +2,9 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Irbi } from './Irbi';
 import { ValleyScene } from './ValleyScene';
 import { pictureUrl } from '../lib/api';
+import { KID_NAME_PATTERN, readProfiles, rememberProfile as storeProfile } from '../lib/progress';
 import './MainMenu.css';
 
-const PROFILES_STORAGE_KEY = 'll_profiles';
-const MAX_PROFILES = 8;
 const AVATARS = ['rabbit', 'fox', 'bear', 'panda', 'owl', 'frog', 'lion', 'tiger', 'koala', 'penguin', 'hedgehog', 'unicorn'];
 const LANGUAGE_OPTIONS = [
   { value: 'RU', label: 'Рус' },
@@ -14,13 +13,16 @@ const LANGUAGE_OPTIONS = [
   { value: 'EN', label: 'Eng' }
 ];
 
-const MENU_TEXT = {
+export const MENU_TEXT = {
   EN: {
     greet: "Hi! I'm Irbi. What's your name?",
     namePlaceholder: 'Your name',
     play: 'Play',
     whoPlays: 'Who is playing?',
     adults: 'For adults',
+    teacher: 'Teacher mode',
+    gateAsk: 'For grown-ups: solve this to continue',
+    serverAdmin: 'Server administrator',
     chooseGame: "Let's play! Pick a game.",
     hello: 'Hi, {name}!',
     sectionWords: 'Letters and speech',
@@ -66,6 +68,9 @@ const MENU_TEXT = {
     play: 'Играть',
     whoPlays: 'Кто играет?',
     adults: 'Для взрослых',
+    teacher: 'Режим учителя',
+    gateAsk: 'Для взрослых: решите пример, чтобы продолжить',
+    serverAdmin: 'Администратор сервера',
     chooseGame: 'Давай играть! Выбери игру.',
     hello: 'Привет, {name}!',
     sectionWords: 'Буквы и речь',
@@ -111,6 +116,9 @@ const MENU_TEXT = {
     play: 'Ойноо',
     whoPlays: 'Ким ойнойт?',
     adults: 'Чоңдор үчүн',
+    teacher: 'Мугалим режими',
+    gateAsk: 'Чоңдор үчүн: улантуу үчүн мисалды чыгарыңыз',
+    serverAdmin: 'Сервер администратору',
     chooseGame: 'Кел, ойнойлу! Оюн танда.',
     hello: 'Салам, {name}!',
     sectionWords: 'Тамгалар жана сүйлөө',
@@ -156,6 +164,9 @@ const MENU_TEXT = {
     play: 'O‘ynash',
     whoPlays: 'Kim o‘ynaydi?',
     adults: 'Kattalar uchun',
+    teacher: 'O‘qituvchi rejimi',
+    gateAsk: 'Kattalar uchun: davom etish uchun misolni yeching',
+    serverAdmin: 'Server administratori',
     chooseGame: 'Keling, o‘ynaymiz! O‘yinni tanla.',
     hello: 'Salom, {name}!',
     sectionWords: 'Harflar va nutq',
@@ -246,28 +257,10 @@ const SKY_LETTERS = {
   UZ: ['A', 'B', 'O‘', 'G‘', 'SH', 'CH']
 };
 
-const KID_NAME_PATTERN = /^[\p{L}\p{M}0-9' -]{1,24}$/u;
 
 export const avatarForName = (name) => {
   const hash = String(name || '').toLowerCase().split('').reduce((acc, ch) => (acc * 31 + ch.charCodeAt(0)) % 9973, 7);
   return AVATARS[hash % AVATARS.length];
-};
-
-const readProfiles = () => {
-  try {
-    const parsed = JSON.parse(localStorage.getItem(PROFILES_STORAGE_KEY) || '[]');
-    return Array.isArray(parsed) ? parsed.filter((item) => typeof item === 'string').slice(0, MAX_PROFILES) : [];
-  } catch {
-    return [];
-  }
-};
-
-const writeProfiles = (profiles) => {
-  try {
-    localStorage.setItem(PROFILES_STORAGE_KEY, JSON.stringify(profiles.slice(0, MAX_PROFILES)));
-  } catch {
-    // storage can be unavailable (private mode); profiles are a convenience only
-  }
 };
 
 export function MainMenu({
@@ -283,6 +276,9 @@ export function MainMenu({
   const [irbiMood, setIrbiMood] = useState('idle');
   const [bubble, setBubble] = useState('');
   const [isAdminOpen, setIsAdminOpen] = useState(false);
+  const [sheetMode, setSheetMode] = useState('gate');
+  const [gate, setGate] = useState({ a: 6, b: 7 });
+  const [gateAnswer, setGateAnswer] = useState('');
   const [adminLogin, setAdminLogin] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
   const [isBusy, setIsBusy] = useState(false);
@@ -308,9 +304,7 @@ export function MainMenu({
   }, [currentUser, greeting, text.chooseGame]);
 
   const rememberProfile = (name) => {
-    const next = [name, ...profiles.filter((item) => item.toLowerCase() !== name.toLowerCase())];
-    setProfiles(next.slice(0, MAX_PROFILES));
-    writeProfiles(next);
+    setProfiles(storeProfile(name));
   };
 
   const enterAs = async (rawName) => {
@@ -328,12 +322,6 @@ export function MainMenu({
     say(`${text.hello.replace('{name}', user.username)} ${text.chooseGame}`, 'happy');
   };
 
-  const forgetProfile = (name) => {
-    const next = profiles.filter((item) => item !== name);
-    setProfiles(next);
-    writeProfiles(next);
-  };
-
   const openGame = (game) => {
     if (game.action.playMode) setPlayMode(game.action.playMode);
     if (game.action.mathMode) setMathMode(game.action.mathMode);
@@ -342,6 +330,26 @@ export function MainMenu({
     if (game.action.speakMode) setSpeakMode(game.action.speakMode);
     speakText?.(text[game.key], { interrupt: true });
     setGameState(game.action.state);
+  };
+
+  // A sum young children cannot solve keeps them out of the grown-up screens without any password.
+  const openAdultSheet = () => {
+    const a = 3 + Math.floor(Math.random() * 7);
+    const b = 3 + Math.floor(Math.random() * 7);
+    setGate({ a, b });
+    setGateAnswer('');
+    setSheetMode('gate');
+    setIsAdminOpen(true);
+  };
+
+  const submitGate = (event) => {
+    event.preventDefault();
+    if (Number(gateAnswer) === gate.a * gate.b) {
+      setIsAdminOpen(false);
+      setGameState('TEACHER');
+      return;
+    }
+    openAdultSheet();
   };
 
   const submitAdmin = async (event) => {
@@ -401,6 +409,7 @@ export function MainMenu({
               {currentUser.isAdmin ? (
                 <IconButton icon="shield" label={text.admin} onClick={() => setGameState('ADMIN')} />
               ) : null}
+              <IconButton icon="teacher" label={text.teacher} onClick={openAdultSheet} />
               <IconButton icon="door_exit" label={text.switchKid} onClick={handleLogout} />
             </nav>
           ) : null}
@@ -454,14 +463,13 @@ export function MainMenu({
                         <img src={pictureUrl(avatarForName(name))} alt="" />
                         <span>{name}</span>
                       </button>
-                      <button type="button" className="ll-profile-forget" onClick={() => forgetProfile(name)} aria-label="×">×</button>
                     </div>
                   ))}
                 </div>
               </div>
             ) : null}
 
-            <button type="button" className="ll-adult-link" onClick={() => setIsAdminOpen(true)}>
+            <button type="button" className="ll-adult-link" onClick={openAdultSheet}>
               <img src={pictureUrl('lock')} alt="" /> {text.adults}
             </button>
           </section>
@@ -493,13 +501,39 @@ export function MainMenu({
 
       {isAdminOpen ? (
         <div className="ll-sheet-backdrop" onClick={() => setIsAdminOpen(false)}>
-          <form className="ll-sheet ll-admin-sheet" onClick={(event) => event.stopPropagation()} onSubmit={submitAdmin}>
-            <h2 className="ll-sheet-title">{text.adminTitle}</h2>
-            <input className="ll-field" value={adminLogin} onChange={(event) => setAdminLogin(event.target.value)} placeholder={text.login} autoComplete="username" />
-            <input className="ll-field" type="password" value={adminPassword} onChange={(event) => setAdminPassword(event.target.value)} placeholder={text.password} autoComplete="current-password" />
-            <button type="submit" className="ll-play-btn ll-play-btn-wide" disabled={!adminLogin || !adminPassword}>{text.enter}</button>
-            <button type="button" className="ll-sheet-close" onClick={() => setIsAdminOpen(false)}>{text.back}</button>
-          </form>
+          {sheetMode === 'gate' ? (
+            <form className="ll-sheet ll-admin-sheet" onClick={(event) => event.stopPropagation()} onSubmit={submitGate}>
+              <h2 className="ll-sheet-title">
+                <img src={pictureUrl('teacher')} alt="" /> {text.teacher}
+              </h2>
+              <p className="ll-gate-ask">{text.gateAsk}</p>
+              <div className="ll-gate-sum">
+                <span>{gate.a} × {gate.b} =</span>
+                <input
+                  className="ll-field ll-gate-input"
+                  value={gateAnswer}
+                  onChange={(event) => setGateAnswer(event.target.value.replace(/\D/g, '').slice(0, 3))}
+                  inputMode="numeric"
+                  autoComplete="off"
+                  autoFocus
+                  aria-label={`${gate.a} × ${gate.b}`}
+                />
+              </div>
+              <button type="submit" className="ll-play-btn ll-play-btn-wide" disabled={!gateAnswer}>{text.enter}</button>
+              {!currentUser ? (
+                <button type="button" className="ll-sheet-link" onClick={() => setSheetMode('admin')}>{text.serverAdmin}</button>
+              ) : null}
+              <button type="button" className="ll-sheet-close" onClick={() => setIsAdminOpen(false)}>{text.back}</button>
+            </form>
+          ) : (
+            <form className="ll-sheet ll-admin-sheet" onClick={(event) => event.stopPropagation()} onSubmit={submitAdmin}>
+              <h2 className="ll-sheet-title">{text.adminTitle}</h2>
+              <input className="ll-field" value={adminLogin} onChange={(event) => setAdminLogin(event.target.value)} placeholder={text.login} autoComplete="username" />
+              <input className="ll-field" type="password" value={adminPassword} onChange={(event) => setAdminPassword(event.target.value)} placeholder={text.password} autoComplete="current-password" />
+              <button type="submit" className="ll-play-btn ll-play-btn-wide" disabled={!adminLogin || !adminPassword}>{text.enter}</button>
+              <button type="button" className="ll-sheet-close" onClick={() => setSheetMode('gate')}>{text.back}</button>
+            </form>
+          )}
         </div>
       ) : null}
     </div>

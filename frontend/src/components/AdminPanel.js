@@ -4,8 +4,6 @@ export function AdminPanel({ onClose, apiBaseUrl, adminToken, showToast }) {
   const [users, setUsers] = useState([]);
   const [error, setError] = useState('');
   const [userToDelete, setUserToDelete] = useState(null);
-  const [passwordUser, setPasswordUser] = useState(null);
-  const [newPassword, setNewPassword] = useState('');
 
   const adminHeaders = useMemo(
     () => ({ 'x-admin-token': adminToken || '', 'Content-Type': 'application/json' }),
@@ -46,26 +44,6 @@ export function AdminPanel({ onClose, apiBaseUrl, adminToken, showToast }) {
     }
   };
 
-  const handleResetPassword = async (user) => {
-    if (!newPassword.trim()) {
-      showToast?.('Введите новый пароль.', 'error');
-      return;
-    }
-    try {
-      const res = await fetch(`${apiBaseUrl}/api/admin/users/${user.id}/password`, {
-        method: 'POST',
-        headers: adminHeaders,
-        body: JSON.stringify({ newPassword: newPassword.trim() })
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Ошибка смены пароля');
-      setPasswordUser(null);
-      setNewPassword('');
-      showToast?.(`Пароль пользователя ${user.username} обновлён.`, 'success');
-    } catch (err) {
-      showToast?.(err.message || 'Не удалось сменить пароль', 'error');
-    }
-  };
   return (
     <div style={{ position: 'relative', width: '100%', maxWidth: '1000px', margin: '0 auto', padding: '20px', color: 'white' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
@@ -98,15 +76,6 @@ export function AdminPanel({ onClose, apiBaseUrl, adminToken, showToast }) {
                   <td style={{ padding: '10px', fontWeight: 'bold' }}>{user.username}</td>
                   <td style={{ padding: '10px', color: '#ffcc00', fontWeight: 'bold' }}>{user.score}</td>
                   <td style={{ padding: '10px', display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                    <button
-                      onClick={() => {
-                        setPasswordUser(user);
-                        setNewPassword('');
-                      }}
-                      style={{ border: 'none', borderRadius: '10px', background: '#1e90ff', color: 'white', padding: '8px 12px', cursor: 'pointer' }}
-                    >
-                      Сменить пароль
-                    </button>
                     <button
                       onClick={() => setUserToDelete(user)}
                       style={{ border: 'none', borderRadius: '10px', background: '#ff4757', color: 'white', padding: '8px 12px', cursor: 'pointer' }}
@@ -148,42 +117,6 @@ export function AdminPanel({ onClose, apiBaseUrl, adminToken, showToast }) {
         </div>
       ) : null}
 
-      {passwordUser ? (
-        <div style={overlayStyle}>
-          <div style={dialogStyle}>
-            <h3 style={{ marginTop: 0, color: '#1e2a44' }}>Новый пароль</h3>
-            <p style={{ color: '#445', lineHeight: 1.45 }}>
-              Введите новый пароль для <strong>{passwordUser.username}</strong>.
-            </p>
-            <input
-              type="password"
-              value={newPassword}
-              onChange={(event) => setNewPassword(event.target.value)}
-              placeholder="Новый пароль"
-              style={dialogInputStyle}
-            />
-            <div style={dialogActionsStyle}>
-              <button
-                type="button"
-                onClick={() => {
-                  setPasswordUser(null);
-                  setNewPassword('');
-                }}
-                style={{ ...dialogButtonStyle, background: '#dfe6ef', color: '#34495e' }}
-              >
-                Отмена
-              </button>
-              <button
-                type="button"
-                onClick={() => handleResetPassword(passwordUser)}
-                style={{ ...dialogButtonStyle, background: '#1e90ff', color: 'white' }}
-              >
-                Сохранить
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
     </div>
   );
 }
@@ -223,15 +156,4 @@ const dialogButtonStyle = {
   padding: '12px 18px',
   fontWeight: 'bold',
   cursor: 'pointer'
-};
-
-const dialogInputStyle = {
-  width: '100%',
-  boxSizing: 'border-box',
-  borderRadius: '16px',
-  border: '2px solid rgba(30, 144, 255, 0.18)',
-  padding: '14px 16px',
-  fontSize: '1rem',
-  outline: 'none',
-  marginTop: '8px'
 };

@@ -1,0 +1,245 @@
+.ab {
+  --ab-card: clamp(190px, 34vh, 290px);
+}
+
+.ab-board {
+  flex-direction: row;
+  align-items: center;
+  gap: clamp(8px, 1.6vw, 18px);
+  min-width: min(700px, 100%);
+}
+
+.ab-page {
+  display: flex;
+  align-items: center;
+  gap: clamp(14px, 2.4vw, 32px);
+  animation: ab-page 0.45s cubic-bezier(0.2, 1.2, 0.4, 1);
+}
+
+/* ---------- the letter to trace ---------- */
+.ab-letter-card {
+  position: relative;
+  width: var(--ab-card);
+  height: var(--ab-card);
+  border-radius: 40px;
+  background:
+    radial-gradient(circle at 30% 25%, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0) 45%),
+    linear-gradient(165deg, #fff4d6, #ffe2a8);
+  box-shadow: inset 0 -8px 0 rgba(217, 160, 40, 0.22), 0 14px 26px rgba(30, 40, 90, 0.16);
+}
+
+.ab-letter-card.is-traced {
+  background:
+    radial-gradient(circle at 30% 25%, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0) 45%),
+    linear-gradient(165deg, #e6fff0, #b9f2d1);
+}
+
+.ab-letter {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: none;
+  background: none;
+  color: rgba(255, 170, 43, 0.38);
+  font-weight: 900;
+  font-size: calc(var(--ab-card) * 0.72);
+  line-height: 1;
+  -webkit-text-stroke: 4px rgba(217, 133, 12, 0.55);
+}
+
+.ab-letter-card.is-traced .ab-letter {
+  color: rgba(34, 196, 122, 0.3);
+  -webkit-text-stroke-color: rgba(18, 138, 82, 0.5);
+}
+
+/* the canvas sits over the letter, so the child draws right on top of it */
+.ab-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  touch-action: none;
+  cursor: crosshair;
+}
+
+.ab-hear {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  border: 3px solid #ffffff;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 4px 0 rgba(217, 160, 40, 0.3);
+}
+
+.ab-hear img {
+  width: 30px;
+  height: 30px;
+}
+
+/* ---------- the word picture ---------- */
+.ab-word-card {
+  position: relative;
+  width: calc(var(--ab-card) * 0.9);
+  height: var(--ab-card);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px;
+  border: none;
+  border-radius: 40px;
+  background: radial-gradient(circle at 50% 40%, #ffffff 55%, #eef3ff 100%);
+  box-shadow: inset 0 -6px 0 rgba(160, 180, 220, 0.3), 0 14px 26px rgba(30, 40, 90, 0.14);
+}
+
+.ab-word-card img {
+  width: 70%;
+  height: 62%;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 8px rgba(30, 40, 80, 0.22));
+  animation: ab-float 3s ease-in-out infinite;
+}
+
+.ab-word-card:disabled {
+  cursor: default;
+}
+
+.ab-word {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #55628a;
+  font-weight: 900;
+  font-size: clamp(1.2rem, 3vh, 1.7rem);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.ab-word b {
+  color: #ff7a33;
+  font-size: 1.25em;
+}
+
+/* ---------- page turning ---------- */
+.ab-turn {
+  flex: none;
+  width: 62px;
+  height: 62px;
+  display: grid;
+  place-items: center;
+  border: 3px solid #ffffff;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #8cc2ff, #3a8bff);
+  color: #ffffff;
+  box-shadow: 0 6px 0 #2160c4, 0 12px 18px rgba(30, 40, 90, 0.2);
+  transition: transform 0.12s ease;
+}
+
+.ab-turn svg {
+  width: 30px;
+  height: 30px;
+}
+
+.ab-turn:active {
+  transform: translateY(5px);
+}
+
+.ab-strip {
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  max-width: min(940px, 100%);
+  overflow-x: auto;
+  gap: 8px;
+  padding: 10px 14px;
+  scrollbar-width: none;
+}
+
+.ab-strip::-webkit-scrollbar {
+  display: none;
+}
+
+.ab-strip-item {
+  flex: none;
+  min-width: 52px;
+  height: 52px;
+  padding: 0 8px;
+  border: none;
+  border-radius: 16px;
+  background: #ffffff;
+  color: #55628a;
+  font-weight: 900;
+  font-size: 1.4rem;
+  box-shadow: 0 4px 0 #d3dcf2;
+}
+
+.ab-strip-item.is-traced {
+  background: linear-gradient(180deg, #e6fff0, #b9f2d1);
+  color: #128a52;
+  box-shadow: 0 4px 0 #86d9ac;
+}
+
+.ab-strip-item.is-current {
+  background: linear-gradient(180deg, #ffd86b, #ffb81a);
+  color: #ffffff;
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 0 #c98a00;
+  transform: translateY(-3px);
+}
+
+@keyframes ab-page {
+  from { opacity: 0; transform: translateX(30px) scale(0.96); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+@keyframes ab-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ab * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+.ll-lite .ab-word-card img {
+  animation: none;
+}
+
+@media (max-width: 700px) {
+  .ab-page {
+    flex-direction: column;
+  }
+
+  .ab-word-card {
+    height: calc(var(--ab-card) * 0.7);
+  }
+}
+
+/* phones held sideways */
+@media (max-height: 520px) {
+  .ab {
+    --ab-card: clamp(120px, 44vh, 170px);
+  }
+
+  .ab-turn {
+    width: 48px;
+    height: 48px;
+  }
+
+  .ab-strip-item {
+    min-width: 40px;
+    height: 40px;
+    font-size: 1.1rem;
+  }
+}

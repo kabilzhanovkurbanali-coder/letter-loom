@@ -1,0 +1,310 @@
+.ls {
+  --ls-picture: clamp(150px, 24vh, 220px);
+  --ls-choice: clamp(100px, 12vw, 150px);
+  --ls-beat: clamp(56px, 8vh, 80px);
+  --ls-clap: clamp(110px, 16vh, 140px);
+}
+
+.ls-board {
+  min-width: min(560px, 100%);
+}
+
+/* ---------- picture ---------- */
+.ls-picture {
+  position: relative;
+  width: var(--ls-picture);
+  height: var(--ls-picture);
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: none;
+  border-radius: 42px;
+  background: radial-gradient(circle at 50% 40%, #ffffff 55%, #eef3ff 100%);
+  box-shadow: inset 0 -6px 0 rgba(160, 180, 220, 0.3), 0 12px 24px rgba(30, 40, 90, 0.14);
+}
+
+.ls-picture img {
+  width: 76%;
+  height: 76%;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 8px rgba(30, 40, 80, 0.22));
+  animation: ls-float 3s ease-in-out infinite;
+}
+
+.ls-picture.is-dancing img {
+  animation: ls-dance 0.6s ease-in-out 3;
+}
+
+.ls-picture-small {
+  width: calc(var(--ls-picture) * 0.9);
+  height: calc(var(--ls-picture) * 0.9);
+}
+
+.ls-picture-word {
+  position: absolute;
+  bottom: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 16px;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #55628a;
+  font-weight: 900;
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  white-space: nowrap;
+  box-shadow: 0 4px 10px rgba(30, 40, 90, 0.14);
+}
+
+.ls-rhyme-sign {
+  color: #3ccf6e;
+  font-weight: 900;
+  font-size: clamp(2.6rem, 6vh, 3.6rem);
+  animation: ls-deal 0.4s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+
+.ls-picture-pair {
+  box-shadow: 0 0 0 5px #5ee38a, inset 0 -6px 0 rgba(160, 180, 220, 0.3), 0 12px 24px rgba(30, 140, 80, 0.2);
+  animation: ls-deal 0.5s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+
+/* ---------- prompt: ear and letter ---------- */
+.ls-prompt {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(10px, 2vw, 24px);
+  min-height: calc(var(--ls-picture) * 0.9);
+}
+
+.ls-ear {
+  width: clamp(120px, 17vh, 160px);
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ffffff, #ffe9f3);
+  box-shadow: 0 0 0 10px rgba(244, 95, 176, 0.12), 0 12px 24px rgba(40, 70, 140, 0.2);
+  animation: ls-ripple 2s ease-out infinite;
+}
+
+.ls-ear img {
+  width: 58%;
+  height: 58%;
+}
+
+.ls-letter {
+  min-width: clamp(120px, 17vh, 160px);
+  height: clamp(120px, 17vh, 160px);
+  padding: 0 24px;
+  border: none;
+  border-radius: 36px;
+  background: linear-gradient(165deg, #8cc2ff, #3a8bff);
+  color: #ffffff;
+  font-weight: 900;
+  font-size: clamp(4rem, 10vh, 6rem);
+  line-height: 1;
+  text-shadow: 0 5px 0 rgba(0, 0, 0, 0.16);
+  box-shadow: inset 0 6px 0 rgba(255, 255, 255, 0.35), 0 9px 0 #2160c4, 0 18px 26px rgba(30, 40, 90, 0.25);
+  animation: ls-bob 2.4s ease-in-out infinite;
+}
+
+/* ---------- picture choices ---------- */
+.ls-choices {
+  min-height: calc(var(--ls-choice) + 36px);
+}
+
+.ls-choice {
+  width: var(--ls-choice);
+  height: var(--ls-choice);
+  display: grid;
+  place-items: center;
+  padding: calc(var(--ls-choice) * 0.12);
+  border: none;
+  border-radius: 30px;
+  background: linear-gradient(180deg, #ffffff, #f2f6ff);
+  box-shadow: inset 0 -4px 0 rgba(160, 180, 220, 0.3), 0 6px 0 #d3dcf2, 0 12px 18px rgba(30, 40, 90, 0.16);
+  animation: ls-deal 0.45s cubic-bezier(0.2, 1.4, 0.4, 1) calc(var(--i) * 0.08s) backwards;
+  transition: transform 0.15s ease, opacity 0.3s ease, filter 0.3s ease;
+}
+
+.ls-choice img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.ls-choice:active {
+  transform: translateY(4px);
+}
+
+.ls-choice.is-faded {
+  opacity: 0.35;
+  filter: grayscale(0.7);
+  transform: scale(0.88);
+  pointer-events: none;
+}
+
+/* state animations run on the picture, so the card's entrance never replays */
+.ls-choice.is-wobble img {
+  animation: ls-wobble 0.45s ease;
+}
+
+.ls-choice.is-hint {
+  box-shadow: 0 0 0 6px #ffd166, 0 0 30px 10px rgba(255, 196, 61, 0.7), 0 6px 0 #e6c56b;
+}
+
+.ls-choice.is-hint img {
+  animation: ls-bob 0.9s ease-in-out infinite;
+}
+
+/* ---------- clapping ---------- */
+.ls-beats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: clamp(8px, 1.4vw, 16px);
+  min-height: var(--ls-beat);
+}
+
+.ls-beat {
+  min-width: var(--ls-beat);
+  height: var(--ls-beat);
+  display: grid;
+  place-items: center;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 4px dashed #c9d6f2;
+  background: rgba(240, 245, 255, 0.9);
+  color: #ffffff;
+  font-weight: 900;
+  font-size: calc(var(--ls-beat) * 0.46);
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.18s cubic-bezier(0.3, 1.6, 0.5, 1);
+  animation: ls-deal 0.35s cubic-bezier(0.2, 1.6, 0.4, 1) backwards;
+}
+
+.ls-beat.is-on {
+  border: 4px solid transparent;
+  background: linear-gradient(170deg, #ffd86b, #ffb81a);
+  text-shadow: 0 3px 0 rgba(0, 0, 0, 0.16);
+  box-shadow: inset 0 4px 0 rgba(255, 255, 255, 0.35), 0 6px 0 #c98a00;
+}
+
+.ls-beat.is-beat {
+  transform: translateY(-8px) scale(1.12);
+}
+
+.ls-beat-ghost {
+  color: #b5c6ea;
+  font-size: calc(var(--ls-beat) * 0.5);
+  animation: ls-breathe 1.6s ease-in-out infinite;
+}
+
+.ls-clapper {
+  width: var(--ls-clap);
+  height: var(--ls-clap);
+  display: grid;
+  place-items: center;
+  border: 5px solid #ffffff;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ffffff, #fff1c9);
+  box-shadow: 0 8px 0 rgba(217, 160, 40, 0.35), 0 14px 26px rgba(40, 70, 140, 0.22);
+  transition: filter 0.2s ease;
+}
+
+.ls-clapper img {
+  width: 62%;
+  height: 62%;
+}
+
+.ls-clapper:disabled {
+  filter: grayscale(0.5) opacity(0.55);
+  cursor: default;
+}
+
+.ls-clapper.is-ready:not(.is-pulse) {
+  animation: ls-pulse 1.4s ease-in-out infinite;
+}
+
+.ls-clapper.is-pulse img {
+  animation: ls-clap 0.3s cubic-bezier(0.3, 0, 0.4, 1);
+}
+
+/* ---------- keyframes ---------- */
+@keyframes ls-deal {
+  from { opacity: 0; transform: translateY(24px) scale(0.6); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes ls-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes ls-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes ls-dance {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  25% { transform: translateY(-16px) rotate(-10deg); }
+  75% { transform: translateY(-6px) rotate(10deg); }
+}
+
+@keyframes ls-wobble {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-8px) rotate(-3deg); }
+  75% { transform: translateX(8px) rotate(3deg); }
+}
+
+@keyframes ls-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.07); }
+}
+
+@keyframes ls-clap {
+  0% { transform: scale(1); }
+  40% { transform: scale(0.82) rotate(-6deg); }
+  100% { transform: scale(1); }
+}
+
+@keyframes ls-ripple {
+  0% { box-shadow: 0 0 0 0 rgba(244, 95, 176, 0.3), 0 12px 24px rgba(40, 70, 140, 0.2); }
+  100% { box-shadow: 0 0 0 26px rgba(244, 95, 176, 0), 0 12px 24px rgba(40, 70, 140, 0.2); }
+}
+
+@keyframes ls-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.12); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ls *,
+  .ls *::before {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+.ll-lite .ls-picture img,
+.ll-lite .ls-ear,
+.ll-lite .ls-letter,
+.ll-lite .ls-beat-ghost {
+  animation: none;
+}
+
+/* phones held sideways */
+@media (max-height: 520px) {
+  .ls {
+    --ls-picture: clamp(90px, 30vh, 130px);
+    --ls-choice: clamp(64px, 19vh, 90px);
+    --ls-beat: clamp(40px, 12vh, 54px);
+    --ls-clap: clamp(70px, 20vh, 92px);
+  }
+
+  .ls-board {
+    flex-direction: column;
+  }
+}

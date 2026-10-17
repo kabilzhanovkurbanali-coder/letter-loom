@@ -293,6 +293,7 @@ export function TeacherPanel({ lang, onClose, onPlayAs, onPrepareOffline }) {
                             </span>
                             {needsPractice(entry) ? <span className="tp-flag">{t.practice}</span> : null}
                           </div>
+                          {activity.noLevel ? null : (
                           <div className="tp-levels" role="group" aria-label={`${t.level}: ${menu[activity.menuKey]}`}>
                             {[1, 2, 3].map((value) => (
                               <button
@@ -307,6 +308,7 @@ export function TeacherPanel({ lang, onClose, onPlayAs, onPrepareOffline }) {
                               </button>
                             ))}
                           </div>
+                          )}
                         </div>
                       );
                     })}

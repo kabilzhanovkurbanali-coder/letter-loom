@@ -11,21 +11,17 @@ import { Achievements } from './components/Achievements';
 import { MainMenu, menuVoicePhrases } from './components/MainMenu';
 import { WordGame, voicePhrases as wordVoicePhrases } from './components/WordGame';
 import { MathGame, voicePhrases as mathVoicePhrases } from './components/MathGame';
-import { AlphabetScreen } from './components/AlphabetScreen';
 import { SettingsScreen } from './components/SettingsScreen';
 import { RewardChestModal } from './components/RewardChestModal';
-import { AiTutorPanel } from './components/AiTutorPanel';
 import { MemoryGame, voicePhrases as memoryVoicePhrases } from './components/MemoryGame';
 import { LogicGame, voicePhrases as logicVoicePhrases } from './components/LogicGame';
 import { SpeakGame, voicePhrases as speakVoicePhrases } from './components/SpeakGame';
 import { TeacherPanel } from './components/TeacherPanel';
+import { ListenGame, voicePhrases as listenVoicePhrases } from './components/ListenGame';
+import { AlphabetBook, voicePhrases as alphabetVoicePhrases } from './components/AlphabetBook';
+import { ColoringGame, voicePhrases as coloringVoicePhrases } from './components/ColoringGame';
 import { rememberProfile } from './lib/progress';
 import { downloadPhrases, uniquePhrases } from './lib/voicePack';
-import { SoundQuizScreen } from './components/SoundQuizScreen';
-import { ColorByNumberScreen } from './components/ColorByNumberScreen';
-import { SyllableClapScreen } from './components/SyllableClapScreen';
-import { RhymeTimeScreen } from './components/RhymeTimeScreen';
-import { FirstSoundScreen } from './components/FirstSoundScreen';
 import { API_BASE_URL, normalizeImageUrl } from './lib/api';
 import { LETTER_NAME_MAPS } from './lib/letters';
 
@@ -291,6 +287,8 @@ const PHONETIC_SPEECH_MAPS = {
   }
 };
 const LANGUAGE_CODES = ['EN', 'RU', 'KG', 'UZ'];
+// Menu states that open one of the listening games.
+const LISTEN_STATES = { SYLLABLE_CLAP: 'CLAP', RHYME_TIME: 'RHYME', SOUND_QUIZ: 'GUESS', FIRST_SOUND: 'FIRST' };
 const buildLevelStorageKey = (userKey, lang, playMode) => `er_level_${userKey}_${lang}_${playMode}`;
 const buildEmptyLangProgress = () => ({ EN: [], RU: [], KG: [], UZ: [] });
 const RARITY_ORDER = ['COMMON', 'RARE', 'SECRET', 'SEASONAL'];
@@ -1321,7 +1319,10 @@ export default function App() {
       ...mathVoicePhrases(lang),
       ...memoryVoicePhrases(lang, { words }),
       ...logicVoicePhrases(lang, { words }),
-      ...speakVoicePhrases(lang)
+      ...speakVoicePhrases(lang),
+      ...listenVoicePhrases(lang, { words }),
+      ...alphabetVoicePhrases(lang, { words }),
+      ...coloringVoicePhrases(lang)
     ]);
     return downloadPhrases(phrases, async ({ text, options }) => {
       const remoteText = normalizeSpeechText(text, { ...options, engine: 'remote' });
@@ -1792,14 +1793,6 @@ export default function App() {
   };
 
   const currentTheme = themes[theme] || themes.OCEAN;
-  // The word game has Irbi built in, so the floating tutor is only shown in the other games.
-  const aiTutorVisible = ['SYLLABLE_CLAP', 'RHYME_TIME', 'FIRST_SOUND'].includes(gameState);
-  const aiTutorContext = useMemo(() => ({
-    language: lang,
-    gameState,
-    playMode,
-    mathMode
-  }), [gameState, lang, mathMode, playMode]);
 
   if (!isMounted || !serverData) return <div className="App-header"><h1>{uiText[lang]?.loading || 'Loading...'}</h1></div>;
 
@@ -1908,11 +1901,13 @@ export default function App() {
         />
       )}
       {gameState === 'ALPHABET' && (
-        <AlphabetScreen
+        <AlphabetBook
+          key={`${lang}-${userKey}`}
           lang={lang}
-          currentTheme={currentTheme}
+          vocabulary={words}
+          userKey={userKey}
           speakText={speakText}
-          onClose={() => setGameState('MENU')}
+          onExit={() => setGameState('MENU')}
         />
       )}
       {gameState === 'MATH_PLAYING' && (
@@ -1980,54 +1975,29 @@ export default function App() {
           onExit={() => setGameState('MENU')}
         />
       )}
-      {gameState === 'SOUND_QUIZ' && (
-        <SoundQuizScreen
+      {LISTEN_STATES[gameState] && (
+        <ListenGame
+          key={`${lang}-${gameState}-${userKey}`}
           lang={lang}
-          currentTheme={currentTheme}
+          activity={LISTEN_STATES[gameState]}
+          vocabulary={words}
+          userKey={userKey}
           speakText={speakText}
-          onClose={() => setGameState('MENU')}
+          prefetchSpeech={safePrefetchSpeech}
+          onSessionComplete={handlePlaySessionComplete}
+          onExit={() => setGameState('MENU')}
         />
       )}
       {gameState === 'COLOR_BY_NUMBER' && (
-        <ColorByNumberScreen
+        <ColoringGame
+          key={`${lang}-${userKey}`}
           lang={lang}
-          currentTheme={currentTheme}
+          userKey={userKey}
           speakText={speakText}
-          onClose={() => setGameState('MENU')}
+          onSessionComplete={handlePlaySessionComplete}
+          onExit={() => setGameState('MENU')}
         />
       )}
-      {gameState === 'SYLLABLE_CLAP' && (
-        <SyllableClapScreen
-          lang={lang}
-          currentTheme={currentTheme}
-          speakText={speakText}
-          onClose={() => setGameState('MENU')}
-        />
-      )}
-      {gameState === 'RHYME_TIME' && (
-        <RhymeTimeScreen
-          lang={lang}
-          currentTheme={currentTheme}
-          speakText={speakText}
-          onClose={() => setGameState('MENU')}
-        />
-      )}
-      {gameState === 'FIRST_SOUND' && (
-        <FirstSoundScreen
-          lang={lang}
-          currentTheme={currentTheme}
-          speakText={speakText}
-          onClose={() => setGameState('MENU')}
-        />
-      )}
-
-      <AiTutorPanel
-        lang={lang}
-        context={aiTutorContext}
-        visible={aiTutorVisible}
-        speakText={speakText}
-        apiBaseUrl={API_BASE_URL}
-      />
     </div>
   );
 }

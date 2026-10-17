@@ -11,14 +11,28 @@ const MAX_DAYS_KEPT = 60;
 // Every activity the teacher can see, grouped the way the brief lists the modules.
 // `id` is "<game>:<mode>"; `menuKey` names it with the main menu's own labels.
 export const MODULES = [
-  { id: 'letters', icon: 'blocks', activities: [{ id: 'word:WORDS', menuKey: 'words' }, { id: 'word:SYLLABLES', menuKey: 'syllables' }] },
-  { id: 'speech', icon: 'microphone', activities: [{ id: 'speak:ECHO', menuKey: 'echo' }, { id: 'speak:SYLLABLES', menuKey: 'sayIt' }, { id: 'speak:BLOW', menuKey: 'blow' }] },
+  {
+    id: 'letters',
+    icon: 'blocks',
+    activities: [
+      { id: 'word:WORDS', menuKey: 'words' }, { id: 'word:SYLLABLES', menuKey: 'syllables' }, { id: 'alphabet:BOOK', menuKey: 'alphabet', noLevel: true },
+      { id: 'listen:FIRST', menuKey: 'firstSound' }, { id: 'listen:GUESS', menuKey: 'soundQuiz' }
+    ]
+  },
+  {
+    id: 'speech',
+    icon: 'microphone',
+    activities: [
+      { id: 'speak:ECHO', menuKey: 'echo' }, { id: 'speak:SYLLABLES', menuKey: 'sayIt' }, { id: 'speak:BLOW', menuKey: 'blow' },
+      { id: 'listen:CLAP', menuKey: 'clap' }, { id: 'listen:RHYME', menuKey: 'rhyme' }
+    ]
+  },
   {
     id: 'math',
     icon: 'abacus',
     activities: [
       { id: 'math:COUNT', menuKey: 'mathCount' }, { id: 'math:NUMBERS', menuKey: 'mathNumbers' },
-      { id: 'math:COMPARE', menuKey: 'mathCompare' }, { id: 'math:ADD', menuKey: 'mathAdd' }
+      { id: 'math:COMPARE', menuKey: 'mathCompare' }, { id: 'math:ADD', menuKey: 'mathAdd' }, { id: 'color:PAINT', menuKey: 'color' }
     ]
   },
   { id: 'memory', icon: 'cards', activities: [{ id: 'memory:PAIRS', menuKey: 'memory' }, { id: 'memory:MISSING', menuKey: 'missing' }, { id: 'memory:SEQUENCE', menuKey: 'sequence' }] },

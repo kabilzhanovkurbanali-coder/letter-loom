@@ -89,3 +89,25 @@ export const sfxNote = (step) => {
     { type: 'triangle', start: frequency * 2, time: 0, duration: 0.08, peak: 0.008 }
   ]);
 };
+
+// A soft hand clap: a short burst of filtered noise.
+export const sfxClap = async () => {
+  const context = await getContext();
+  if (!context) return;
+  const length = Math.floor(context.sampleRate * 0.12);
+  const buffer = context.createBuffer(1, length, context.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < length; i += 1) data[i] = (Math.random() * 2 - 1) * (1 - i / length) ** 3;
+  const source = context.createBufferSource();
+  source.buffer = buffer;
+  const filter = context.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.frequency.value = 1400;
+  filter.Q.value = 0.8;
+  const gain = context.createGain();
+  gain.gain.value = 0.35;
+  source.connect(filter);
+  filter.connect(gain);
+  gain.connect(context.destination);
+  source.start();
+};

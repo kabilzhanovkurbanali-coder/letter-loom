@@ -1,6 +1,4 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
-import confetti from 'canvas-confetti';
 
 import './App.css';
 import { themes } from './data/themes'; 
@@ -11,7 +9,7 @@ import { StickerAlbum } from './components/StickerAlbum';
 import { AdminPanel } from './components/AdminPanel';
 import { Achievements } from './components/Achievements';
 import { MainMenu } from './components/MainMenu';
-import { GameScreen } from './components/GameScreen';
+import { WordGame } from './components/WordGame';
 import { MiniMathScreen } from './components/MiniMathScreen';
 import { AlphabetScreen } from './components/AlphabetScreen';
 import { SettingsScreen } from './components/SettingsScreen';
@@ -24,71 +22,13 @@ import { SyllableClapScreen } from './components/SyllableClapScreen';
 import { RhymeTimeScreen } from './components/RhymeTimeScreen';
 import { FirstSoundScreen } from './components/FirstSoundScreen';
 import { API_BASE_URL, normalizeImageUrl } from './lib/api';
+import { LETTER_NAME_MAPS } from './lib/letters';
 
 const SILENT_AUDIO_DATA_URI = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
 const IS_TEST_ENV = typeof process !== 'undefined' && process.env.NODE_ENV === 'test';
 const SPEECH_PREFETCH_LIMIT = 48;
 const buildMathCollectionStorageKey = (userKey) => `er_math_collection_${userKey}`;
 const SPEECH_RATE_VALUES = ['SLOW', 'NORMAL', 'FAST'];
-let placementAudioContext = null;
-const getPlacementAudioContext = () => {
-  if (typeof window === 'undefined') return null;
-  const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
-  if (!AudioContextCtor) return null;
-  if (!placementAudioContext) {
-    placementAudioContext = new AudioContextCtor();
-  }
-  return placementAudioContext;
-};
-
-const playPlacementCelebrationTone = async (token, isLevelComplete = false) => {
-  const context = getPlacementAudioContext();
-  if (!context) return;
-
-  if (context.state === 'suspended') {
-    try {
-      await context.resume();
-    } catch {
-      return;
-    }
-  }
-
-  const seed = String(token || '')
-    .split('')
-    .reduce((sum, char) => sum + char.charCodeAt(0), 0);
-  const baseFreq = 420 + (seed % 7) * 22;
-  const notes = [
-    { type: 'triangle', start: baseFreq, end: baseFreq * 1.18, time: 0, duration: 0.08, peak: 0.025 },
-    { type: 'sine', start: baseFreq * 1.24, end: baseFreq * 1.42, time: 0.06, duration: 0.1, peak: 0.02 },
-    { type: 'triangle', start: baseFreq * 1.5, end: baseFreq * 1.78, time: 0.14, duration: 0.12, peak: 0.018 }
-  ];
-
-  if (isLevelComplete) {
-    notes.push(
-      { type: 'sine', start: baseFreq * 1.96, end: baseFreq * 2.22, time: 0.24, duration: 0.16, peak: 0.022 },
-      { type: 'triangle', start: baseFreq * 2.34, end: baseFreq * 2.62, time: 0.34, duration: 0.2, peak: 0.018 }
-    );
-  }
-
-  const now = context.currentTime;
-  notes.forEach((note) => {
-    const oscillator = context.createOscillator();
-    const gain = context.createGain();
-
-    oscillator.type = note.type;
-    oscillator.frequency.setValueAtTime(note.start, now + note.time);
-    oscillator.frequency.exponentialRampToValueAtTime(note.end, now + note.time + note.duration);
-    gain.gain.setValueAtTime(0.0001, now + note.time);
-    gain.gain.linearRampToValueAtTime(note.peak, now + note.time + 0.018);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + note.time + note.duration);
-
-    oscillator.connect(gain);
-    gain.connect(context.destination);
-    oscillator.start(now + note.time);
-    oscillator.stop(now + note.time + note.duration + 0.03);
-  });
-};
-
 const transliterateUzbekToCyrillic = (input) => {
   let value = String(input || '');
   if (!value) return '';
@@ -194,137 +134,6 @@ const SPEECH_PROFILES = {
     preferredVoices: ['uz-UZ', 'uz-Cyrl-UZ', 'ru-RU'],
     voiceNameHints: /uz|uzbek|cyrl|ru|russian/i,
     rateOffset: -0.01
-  }
-};
-const LETTER_NAME_MAPS = {
-  EN: {
-    A: 'ay',
-    B: 'bee',
-    C: 'see',
-    D: 'dee',
-    E: 'ee',
-    F: 'ef',
-    G: 'gee',
-    H: 'aitch',
-    I: 'eye',
-    J: 'jay',
-    K: 'kay',
-    L: 'el',
-    M: 'em',
-    N: 'en',
-    O: 'oh',
-    P: 'pee',
-    Q: 'cue',
-    R: 'ar',
-    S: 'ess',
-    T: 'tee',
-    U: 'you',
-    V: 'vee',
-    W: 'double u',
-    X: 'ex',
-    Y: 'why',
-    Z: 'zee'
-  },
-  RU: {
-    А: 'а',
-    Б: 'бэ',
-    В: 'вэ',
-    Г: 'гэ',
-    Д: 'дэ',
-    Е: 'е',
-    Ё: 'ё',
-    Ж: 'жэ',
-    З: 'зэ',
-    И: 'и',
-    Й: 'й',
-    К: 'ка',
-    Л: 'эл',
-    М: 'эм',
-    Н: 'эн',
-    О: 'о',
-    П: 'пэ',
-    Р: 'эр',
-    С: 'эс',
-    Т: 'тэ',
-    У: 'у',
-    Ф: 'эф',
-    Х: 'ха',
-    Ц: 'це',
-    Ч: 'чэ',
-    Ш: 'ша',
-    Щ: 'ща',
-    Ъ: 'твёрдый знак',
-    Ы: 'ы',
-    Ь: 'мягкий знак',
-    Э: 'э',
-    Ю: 'ю',
-    Я: 'я'
-  },
-  KG: {
-    А: 'а',
-    Б: 'бэ',
-    В: 'вэ',
-    Г: 'гэ',
-    Д: 'дэ',
-    Е: 'е',
-    Ё: 'йо',
-    Ж: 'жэ',
-    З: 'зэ',
-    И: 'и',
-    Й: 'й',
-    К: 'ка',
-    Л: 'эл',
-    М: 'эм',
-    Н: 'эн',
-    Ң: 'ң',
-    О: 'о',
-    Ө: 'ө',
-    П: 'пэ',
-    Р: 'эр',
-    С: 'эс',
-    Т: 'тэ',
-    У: 'у',
-    Ү: 'ү',
-    Ф: 'эф',
-    Х: 'ха',
-    Ц: 'це',
-    Ч: 'чэ',
-    Ш: 'ша',
-    Ы: 'ы',
-    Э: 'э',
-    Ю: 'йу',
-    Я: 'йа'
-  },
-  UZ: {
-    A: 'a',
-    B: 'be',
-    C: 'se',
-    D: 'de',
-    E: 'e',
-    F: 'ef',
-    G: 'ge',
-    H: 'ha',
-    I: 'i',
-    J: 'je',
-    K: 'ka',
-    L: 'el',
-    M: 'em',
-    N: 'en',
-    O: 'o',
-    P: 'pe',
-    Q: 'qe',
-    R: 'er',
-    S: 'es',
-    T: 'te',
-    U: 'u',
-    V: 've',
-    X: 'xe',
-    Y: 'ye',
-    Z: 'ze',
-    "O'": "o'",
-    "G'": "g'e",
-    SH: 'she',
-    CH: 'che'
   }
 };
 const PHONETIC_SPEECH_MAPS = {
@@ -476,21 +285,6 @@ const PHONETIC_SPEECH_MAPS = {
     }
   }
 };
-const LOOKALIKE_CHAR_MAP = {
-  'А': 'A', 'A': 'A',
-  'В': 'B', 'B': 'B',
-  'Е': 'E', 'E': 'E',
-  'К': 'K', 'K': 'K',
-  'М': 'M', 'M': 'M',
-  'Н': 'H', 'H': 'H',
-  'О': 'O', 'O': 'O', '0': 'O',
-  'Р': 'P', 'P': 'P',
-  'С': 'C', 'C': 'C',
-  'Т': 'T', 'T': 'T',
-  'Х': 'X', 'X': 'X',
-  'У': 'Y', 'Y': 'Y'
-};
-
 const LANGUAGE_CODES = ['EN', 'RU', 'KG', 'UZ'];
 const buildLevelStorageKey = (userKey, lang, playMode) => `er_level_${userKey}_${lang}_${playMode}`;
 const buildEmptyLangProgress = () => ({ EN: [], RU: [], KG: [], UZ: [] });
@@ -766,8 +560,6 @@ export default function App() {
   const [serverData, setServerData] = useState(null);
   
   const [currentIdx, setCurrentIdx] = useState(0);
-  const [foundLetters, setFoundLetters] = useState([]);
-  const [usedDragIndices, setUsedDragIndices] = useState([]);
   const [stickersByLang, setStickersByLang] = useState(buildEmptyLangProgress);
   const [syllableStickersByLang, setSyllableStickersByLang] = useState(buildEmptyLangProgress);
   const [achievements, setAchievements] = useState([]);
@@ -828,7 +620,6 @@ export default function App() {
     return Boolean((navigator.deviceMemory && navigator.deviceMemory <= 2)
       || (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 2));
   }, []);
-  const letterStyle = 'CARTOON';
   const [winStreak, setWinStreak] = useState(0);
   const [rewardCollection, setRewardCollection] = useState([]);
   const [mathCollection, setMathCollection] = useState([]);
@@ -852,7 +643,6 @@ export default function App() {
   const gameStateRef = useRef(gameState);
   const toastTimeoutRef = useRef(null);
 
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   const fetchWords = () => {
     fetch(`${API_BASE_URL}/api/words`)
@@ -979,8 +769,6 @@ export default function App() {
 
   useEffect(() => {
     localStorage.setItem(buildLevelStorageKey(userKey, lang, playMode), String(currentIdx));
-    setFoundLetters([]);
-    setUsedDragIndices([]);
   }, [currentIdx, userKey, lang, playMode]);
 
   const wordsByLang = useMemo(
@@ -1015,10 +803,6 @@ export default function App() {
   const stickers = stickersByLang[lang] || [];
   const syllableStickers = syllableStickersByLang[lang] || [];
   const levels = playMode === 'SYLLABLES' ? syllableContent : words;
-  const currentLevel = useMemo(
-    () => levels[currentIdx] || { text: "LOAD", img: "", units: [] },
-    [levels, currentIdx]
-  );
   const chestQueue = pendingChestRewards;
   const activeChestReward = chestQueue[0]
     ? decorateReward(CHEST_REWARD_POOL.find((reward) => reward.id === chestQueue[0]) || CHEST_REWARD_POOL[0], lang)
@@ -1051,25 +835,6 @@ export default function App() {
     localStorage.setItem(`er_chest_queue_${userKey}`, JSON.stringify(pendingChestRewards));
     localStorage.setItem(`er_chest_opened_${userKey}`, isChestOpened ? '1' : '0');
   }, [pendingChestRewards, isChestOpened, loadedProfileKey, userKey]);
-  const displayText = currentLevel?.text || '';
-  const maskedDisplayText = useMemo(() => {
-    if (!displayText) return '';
-    if (playMode === 'SYLLABLES') {
-      return displayText.replace(/[A-ZА-ЯЁӨҮҢ]/gi, '•');
-    }
-    return foundLetters.length ? displayText.replace(/./g, '•') : '';
-  }, [displayText, foundLetters.length, playMode]);
-  const levelUnits = useMemo(() => {
-    if (playMode === 'SYLLABLES') return currentLevel.units || [];
-    if (currentLevel.units?.length) return currentLevel.units;
-    return displayText ? displayText.split('') : [];
-  }, [playMode, currentLevel, displayText]);
-
-  const shuffledLetters = useMemo(() => {
-    if (!levelUnits.length) return [];
-    return levelUnits.map((char, index) => ({ char, index })).sort(() => Math.random() - 0.5);
-  }, [levelUnits]);
-
   const speechEngineStatus = 'NEURAL_AI';
   const feedbackText = {
     EN: {
@@ -1532,23 +1297,8 @@ export default function App() {
     void speakRemoteText(text, requestOptions).catch(handleRemoteError);
   };
 
-  useEffect(() => {
-    if (gameState !== 'PLAYING' || !displayText) return undefined;
-
-    const timer = window.setTimeout(() => {
-      void prefetchRemoteSpeech(displayText, {
-        kind: playMode === 'SYLLABLES' ? 'syllable' : 'word',
-        rate: lang === 'EN' ? 0.9 : lang === 'UZ' ? 0.84 : 0.82
-      });
-    }, 120);
-
-    return () => window.clearTimeout(timer);
-  }, [displayText, gameState, lang, playMode, prefetchRemoteSpeech]);
-
   const handleLanguageChange = (nextLang) => {
     if (!nextLang || nextLang === lang) return;
-    setFoundLetters([]);
-    setUsedDragIndices([]);
     setSpeechRuntimeStatus('IDLE');
     setLang(nextLang);
   };
@@ -1562,8 +1312,6 @@ export default function App() {
 
   const handleResetProgress = () => {
     setCurrentIdx(0);
-    setFoundLetters([]);
-    setUsedDragIndices([]);
     setStickersByLang(buildEmptyLangProgress());
     setSyllableStickersByLang(buildEmptyLangProgress());
     setAchievements([]);
@@ -1899,21 +1647,6 @@ export default function App() {
     }
   };
 
-  const normalizeLookalikeToken = (token) =>
-    String(token || '')
-      .toUpperCase()
-      .split('')
-      .map((char) => LOOKALIKE_CHAR_MAP[char] || char)
-      .join('');
-
-  const areUnitsCompatible = (activeUnit, expectedUnit) => {
-    const active = String(activeUnit || '').trim().toUpperCase();
-    const expected = String(expectedUnit || '').trim().toUpperCase();
-    if (!active || !expected) return false;
-    if (active === expected) return true;
-    return normalizeLookalikeToken(active) === normalizeLookalikeToken(expected);
-  };
-
   const registerFreshWin = () => {
     const nextStreak = winStreak + 1;
     setWinStreak(nextStreak);
@@ -1946,134 +1679,48 @@ export default function App() {
     setIsChestOpened(false);
   };
 
-  const handleDragEnd = async (event) => {
-    const { over, active } = event;
-    if (!over) return;
+  // Rewards for a built word: stars on the server, a sticker, achievements, chest progress.
+  const handleWordComplete = async (level) => {
+    if (!level?.id) return;
+    const isSyllables = playMode === 'SYLLABLES';
+    const solved = isSyllables ? syllableStickers : stickers;
+    if (solved.includes(level.id)) return;
 
-    const activeIndex = parseInt(active.id.replace('drag-', ''), 10);
-    const overIndex = parseInt(over.id.replace('slot-', ''), 10);
-
-    const activeUnit = levelUnits[activeIndex];
-    const expectedUnit = levelUnits[overIndex];
-    const slotFilled = foundLetters.includes(overIndex);
-    const dragAlreadyUsed = usedDragIndices.includes(activeIndex);
-    const canPlace = areUnitsCompatible(activeUnit, expectedUnit);
-
-    if (!slotFilled && !dragAlreadyUsed && canPlace) {
-      const newFound = [...foundLetters, overIndex];
-      const newUsed = [...usedDragIndices, activeIndex];
-      const isLevelComplete = newFound.length === levelUnits.length;
-      void playPlacementCelebrationTone(expectedUnit, isLevelComplete);
-      setFoundLetters(newFound);
-      setUsedDragIndices(newUsed);
-
-      if (isLevelComplete) {
-        confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
-
-        const praiseByLang = {
-          RU: ['Молодец!', 'Отлично!', 'Умница!', 'Замечательно!', 'Супер!', 'Браво!'],
-          KG: ['Азамат!', 'Жакшы!', 'Сонун!', 'Мыкты!', 'Баракелде!'],
-          UZ: ['Barakalla!', "Zo'r!", 'Ajoyib!', 'Yaxshi!', 'Ofarin!'],
-          EN: ['Great job!', 'Excellent!', 'Well done!', 'Amazing!', 'Brilliant!']
-        };
-        const praises = praiseByLang[lang] || praiseByLang.RU;
-        const praise = praises[Math.floor(Math.random() * praises.length)];
-
-        // 1. Сначала произносим собранное слово
-        setTimeout(() => {
-          speakText(displayText, {
-            kind: playMode === 'SYLLABLES' ? 'syllable' : 'word',
-            pitch: 1.02,
-            rate: lang === 'EN' ? 0.9 : lang === 'UZ' ? 0.84 : 0.82,
-            interrupt: true
-          });
-        }, 200);
-
-        // 2. Потом хвалим — мгновенно, без AI-задержки
-        const praiseDelay = lang === 'KG' || lang === 'UZ'
-          ? Math.max(2200, displayText.length * 260 + 800)
-          : Math.max(1800, displayText.length * 230 + 600);
-        setTimeout(() => {
-          speakText(praise, { pitch: 0.82, rate: 0.88, interrupt: false });
-        }, praiseDelay);
-
-        const shouldRewardScore = playMode === 'SYLLABLES'
-          ? currentLevel.id && !syllableStickers.includes(currentLevel.id)
-          : currentLevel.id && !stickers.includes(currentLevel.id);
-        const isFreshCompletion = Boolean(shouldRewardScore);
-
-        if (currentUser && !currentUser.offline && shouldRewardScore) {
-          try {
-            const res = await fetch(`${API_BASE_URL}/api/update-score`, {
-              method: 'POST', headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ username: currentUser.username, points: 10 })
-            });
-            const data = await res.json();
-            if (data.success) setCurrentUser({ ...currentUser, score: data.newScore });
-          } catch (e) { console.error("Не удалось сохранить прогресс"); }
-        }
-
-        if (playMode === 'WORDS' && currentLevel.id && !stickers.includes(currentLevel.id)) {
-          const newS = [...stickers, currentLevel.id];
-          setStickersByLang((prev) => {
-            const next = { ...prev, [lang]: newS };
-            localStorage.setItem(`er_stickers_map_${userKey}`, JSON.stringify(next));
-            return next;
-          });
-          checkAchievements(newS.length);
-        }
-
-        if (playMode === 'SYLLABLES' && currentLevel.id && !syllableStickers.includes(currentLevel.id)) {
-          const newSyllableSet = [...syllableStickers, currentLevel.id];
-          setSyllableStickersByLang((prev) => {
-            const next = { ...prev, [lang]: newSyllableSet };
-            localStorage.setItem(`er_syllable_stickers_map_${userKey}`, JSON.stringify(next));
-            return next;
-          });
-        }
-
-        if (isFreshCompletion) {
-          registerFreshWin();
-        }
+    if (currentUser && !currentUser.offline && !currentUser.isAdmin) {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/update-score`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: currentUser.username, points: 10 })
+        });
+        const data = await res.json();
+        if (data.success) setCurrentUser((prev) => (prev ? { ...prev, score: data.newScore } : prev));
+      } catch {
+        console.error('Не удалось сохранить прогресс');
       }
     }
+
+    const nextSolved = [...solved, level.id];
+    const storageKey = isSyllables ? `er_syllable_stickers_map_${userKey}` : `er_stickers_map_${userKey}`;
+    const setter = isSyllables ? setSyllableStickersByLang : setStickersByLang;
+    setter((prev) => {
+      const next = { ...prev, [lang]: nextSolved };
+      localStorage.setItem(storageKey, JSON.stringify(next));
+      return next;
+    });
+    if (!isSyllables) checkAchievements(nextSolved.length);
+    registerFreshWin();
   };
 
-  const isWin = foundLetters.length === levelUnits.length;
   const currentTheme = themes[theme] || themes.OCEAN;
-  const aiTutorVisible = ['PLAYING', 'MATH_PLAYING', 'SYLLABLE_CLAP', 'RHYME_TIME', 'FIRST_SOUND'].includes(gameState);
+  // The word game has Irbi built in, so the floating tutor is only shown in the other games.
+  const aiTutorVisible = ['MATH_PLAYING', 'SYLLABLE_CLAP', 'RHYME_TIME', 'FIRST_SOUND'].includes(gameState);
   const aiTutorContext = useMemo(() => ({
     language: lang,
     gameState,
     playMode,
-    mathMode,
-    levelNumber: gameState === 'PLAYING' ? currentIdx + 1 : null,
-    solvedCount: playMode === 'SYLLABLES' ? syllableStickers.length : stickers.length,
-    foundCount: foundLetters.length,
-    totalUnits: levelUnits.length,
-    currentTask: gameState === 'PLAYING' ? {
-      text: displayText,
-      maskedText: isWin ? displayText : maskedDisplayText,
-      difficulty: currentLevel?.difficulty || '',
-      type: currentLevel?.syllableType || currentLevel?.rarity || ''
-    } : null
-  }), [
-    currentIdx,
-    currentLevel?.difficulty,
-    currentLevel?.rarity,
-    currentLevel?.syllableType,
-    displayText,
-    foundLetters.length,
-    gameState,
-    isWin,
-    lang,
-    levelUnits.length,
-    maskedDisplayText,
-    mathMode,
-    playMode,
-    stickers.length,
-    syllableStickers.length
-  ]);
+    mathMode
+  }), [gameState, lang, mathMode, playMode]);
 
   if (!isMounted || !serverData) return <div className="App-header"><h1>{uiText[lang]?.loading || 'Loading...'}</h1></div>;
 
@@ -2116,7 +1763,7 @@ export default function App() {
 
       <RewardChestModal
         lang={lang}
-        reward={activeChestReward}
+        reward={gameState === 'PLAYING' ? null : activeChestReward}
         seasonTitle={seasonEvent.title}
         opened={isChestOpened}
         pendingCount={chestQueue.length}
@@ -2163,17 +1810,19 @@ export default function App() {
       )}
 
       {gameState === 'PLAYING' && (
-        <GameScreen 
-          currentIdx={currentIdx} setCurrentIdx={setCurrentIdx}
-          playMode={playMode} words={levels} word={currentLevel} foundLetters={foundLetters}
-          usedDragIndices={usedDragIndices}
-          letterStyle={letterStyle}
-          levelUnits={levelUnits} displayText={displayText}
+        <WordGame
+          key={`${lang}-${playMode}-${userKey}`}
+          lang={lang}
+          playMode={playMode}
+          levels={levels}
+          currentIdx={currentIdx}
+          setCurrentIdx={setCurrentIdx}
+          solvedIds={playMode === 'SYLLABLES' ? syllableStickers : stickers}
+          userKey={userKey}
           speakText={speakText}
           prefetchSpeech={prefetchRemoteSpeech}
-          shuffledLetters={shuffledLetters} handleDragEnd={handleDragEnd}
-          isWin={isWin} currentTheme={currentTheme} lang={lang} 
-          setGameState={setGameState} sensors={sensors}
+          onWordComplete={handleWordComplete}
+          onExit={() => setGameState('MENU')}
         />
       )}
       {gameState === 'ALPHABET' && (

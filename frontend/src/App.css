@@ -3966,7 +3966,7 @@ select {
 
 @keyframes slideDownOut { 0% { top: -100px; opacity: 0; } 10%, 90% { top: 20px; opacity: 1; } 100% { top: -100px; opacity: 0; } }
 .achievement-toast {
-  position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+  position: fixed; top: 96px; left: 50%; transform: translateX(-50%);
   background: linear-gradient(135deg, #ffcc00, #ff9900);
   border: 3px solid white; border-radius: 50px; padding: 15px 30px;
   color: #333; font-weight: bold; font-size: 1.5rem;

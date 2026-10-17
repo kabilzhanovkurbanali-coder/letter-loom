@@ -17,6 +17,7 @@ import { RewardChestModal } from './components/RewardChestModal';
 import { AiTutorPanel } from './components/AiTutorPanel';
 import { MemoryGame } from './components/MemoryGame';
 import { LogicGame } from './components/LogicGame';
+import { SpeakGame } from './components/SpeakGame';
 import { SoundQuizScreen } from './components/SoundQuizScreen';
 import { ColorByNumberScreen } from './components/ColorByNumberScreen';
 import { SyllableClapScreen } from './components/SyllableClapScreen';
@@ -560,6 +561,7 @@ export default function App() {
   const [mathMode, setMathMode] = useState('COUNT');
   const [memoryMode, setMemoryMode] = useState('PAIRS');
   const [logicMode, setLogicMode] = useState('ODD');
+  const [speakMode, setSpeakMode] = useState('ECHO');
   const [serverData, setServerData] = useState(null);
   
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -1855,6 +1857,7 @@ export default function App() {
           setMathMode={setMathMode}
           setMemoryMode={setMemoryMode}
           setLogicMode={setLogicMode}
+          setSpeakMode={setSpeakMode}
           setGameState={setGameState}
           currentUser={currentUser}
           handleLogout={handleLogout}
@@ -1907,6 +1910,19 @@ export default function App() {
           lang={lang}
           activity={memoryMode}
           vocabulary={words}
+          userKey={userKey}
+          speakText={speakText}
+          prefetchSpeech={safePrefetchSpeech}
+          onSessionComplete={handlePlaySessionComplete}
+          onExit={() => setGameState('MENU')}
+        />
+      )}
+
+      {gameState === 'SPEAK' && (
+        <SpeakGame
+          key={`${lang}-${speakMode}-${userKey}`}
+          lang={lang}
+          activity={speakMode}
           userKey={userKey}
           speakText={speakText}
           prefetchSpeech={safePrefetchSpeech}

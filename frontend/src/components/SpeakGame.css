@@ -1,0 +1,384 @@
+.sp {
+  --sp-picture: clamp(150px, 24vh, 230px);
+  --sp-unit: clamp(64px, 9vh, 92px);
+  --sp-mic: clamp(104px, 15vh, 132px);
+  --sp-candle: clamp(26px, 3.2vw, 38px);
+}
+
+/* holds the live loudness (--vol) for everything inside, without adding a layout box */
+.sp-stage {
+  display: contents;
+  --vol: 0;
+}
+
+.sp-board {
+  min-width: min(560px, 100%);
+}
+
+/* ---------- picture and syllables ---------- */
+.sp-picture {
+  width: var(--sp-picture);
+  height: var(--sp-picture);
+  display: grid;
+  place-items: center;
+  border-radius: 42px;
+  background: radial-gradient(circle at 50% 40%, #ffffff 55%, #eef3ff 100%);
+  box-shadow: inset 0 -6px 0 rgba(160, 180, 220, 0.3), 0 12px 24px rgba(30, 40, 90, 0.14);
+  transform: scale(calc(1 + var(--vol) * 0.14));
+  transition: transform 0.08s linear;
+}
+
+.sp-picture img {
+  width: 76%;
+  height: 76%;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 8px rgba(30, 40, 80, 0.22));
+  animation: sp-float 3s ease-in-out infinite;
+}
+
+.sp-picture.is-dancing img {
+  animation: sp-dance 0.6s ease-in-out 3;
+}
+
+.sp-units {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: clamp(8px, 1.4vw, 16px);
+}
+
+.sp-unit {
+  --c1: #c9d3ea;
+  --c2: #aab6d4;
+  --c3: #8d9abc;
+  min-width: var(--sp-unit);
+  height: var(--sp-unit);
+  padding: 0 clamp(14px, 2vw, 24px);
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #f1f4fb, #dde3f1);
+  color: #9aa6c4;
+  font-weight: 900;
+  font-size: calc(var(--sp-unit) * 0.48);
+  letter-spacing: 0.02em;
+  box-shadow: inset 0 -5px 0 rgba(120, 140, 190, 0.18), 0 6px 0 #c8d0e4;
+  cursor: default;
+  animation: sp-deal 0.45s cubic-bezier(0.2, 1.4, 0.4, 1) calc(var(--i) * 0.08s) backwards;
+  transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.18s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+.sp-unit-coral { --c1: #ff9a8a; --c2: #ff6f61; --c3: #d9483b; }
+.sp-unit-sky { --c1: #8cc2ff; --c2: #3a8bff; --c3: #2160c4; }
+.sp-unit-sun { --c1: #ffd86b; --c2: #ffb81a; --c3: #c98a00; }
+.sp-unit-mint { --c1: #7fe3b4; --c2: #22c47a; --c3: #128a52; }
+.sp-unit-violet { --c1: #c3a8ff; --c2: #8c64f0; --c3: #6440c4; }
+
+.sp-unit.is-beat,
+.sp-unit.is-lit {
+  background: linear-gradient(170deg, var(--c1), var(--c2));
+  color: #ffffff;
+  text-shadow: 0 3px 0 rgba(0, 0, 0, 0.16);
+  box-shadow: inset 0 4px 0 rgba(255, 255, 255, 0.35), 0 6px 0 var(--c3), 0 12px 18px rgba(30, 40, 90, 0.2);
+}
+
+/* a transition, not an animation, so the bubble's entrance never replays */
+.sp-unit.is-beat {
+  transform: translateY(-8px) scale(1.1);
+}
+
+.sp-unit.is-tappable {
+  cursor: pointer;
+  box-shadow: 0 0 0 5px #ffd166, 0 6px 0 #c8d0e4, 0 0 22px 6px rgba(255, 196, 61, 0.45);
+}
+
+/* ---------- birthday cake ---------- */
+.sp-cake {
+  position: relative;
+  width: clamp(260px, 34vw, 380px);
+  padding-top: calc(var(--sp-candle) * 3.4);
+}
+
+.sp-candles {
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  top: 0;
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-end;
+  height: calc(var(--sp-candle) * 3.6);
+  z-index: 2;
+}
+
+.sp-candle {
+  position: relative;
+  width: var(--sp-candle);
+  height: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: default;
+  animation: sp-deal 0.5s cubic-bezier(0.2, 1.4, 0.4, 1) calc(var(--i) * 0.1s) backwards;
+}
+
+.sp-stick {
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  bottom: 0;
+  height: 52%;
+  border-radius: 6px 6px 3px 3px;
+  background:
+    repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0 6px, rgba(255, 255, 255, 0) 6px 12px),
+    linear-gradient(90deg, #ff8fb5, #ff5e8e);
+  box-shadow: inset -3px 0 0 rgba(0, 0, 0, 0.08);
+}
+
+.sp-candle:nth-child(2n) .sp-stick {
+  background:
+    repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0 6px, rgba(255, 255, 255, 0) 6px 12px),
+    linear-gradient(90deg, #8cc2ff, #3a8bff);
+}
+
+.sp-candle:nth-child(3n) .sp-stick {
+  background:
+    repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0 6px, rgba(255, 255, 255, 0) 6px 12px),
+    linear-gradient(90deg, #7fe3b4, #22c47a);
+}
+
+.sp-wick {
+  position: absolute;
+  left: 50%;
+  bottom: 52%;
+  width: 3px;
+  height: 9%;
+  margin-left: -1.5px;
+  border-radius: 2px;
+  background: #4a3b33;
+}
+
+/* the flame leans away and shrinks as the child blows harder */
+.sp-flame {
+  position: absolute;
+  left: 50%;
+  bottom: 58%;
+  width: 70%;
+  height: 40%;
+  margin-left: -35%;
+  border-radius: 50% 50% 50% 50% / 62% 62% 38% 38%;
+  background: radial-gradient(ellipse at 50% 75%, #fffbe0 0 22%, #ffd84d 45%, #ff9a1f 75%, rgba(255, 120, 20, 0) 100%);
+  box-shadow: 0 0 22px 8px rgba(255, 200, 60, 0.55);
+  transform-origin: 50% 100%;
+  transform: rotate(calc(var(--vol) * 38deg)) scale(calc(1 - var(--vol) * 0.45), calc(1 - var(--vol) * 0.35));
+  transition: transform 0.08s linear, opacity 0.25s ease;
+}
+
+.sp-flame::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: inherit;
+  animation: sp-flicker 0.9s ease-in-out infinite alternate;
+}
+
+.sp-candle.is-out .sp-flame {
+  opacity: 0;
+  transform: scale(0.2);
+}
+
+.sp-candle.is-tappable {
+  cursor: pointer;
+}
+
+.sp-candle.is-tappable .sp-flame {
+  box-shadow: 0 0 0 5px rgba(255, 209, 102, 0.6), 0 0 26px 10px rgba(255, 200, 60, 0.7);
+}
+
+.sp-smoke {
+  position: absolute;
+  left: 50%;
+  bottom: 60%;
+  width: 22px;
+  height: 22px;
+  margin-left: -11px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(170, 180, 200, 0.75), rgba(170, 180, 200, 0) 70%);
+  animation: sp-smoke 1.4s ease-out forwards;
+}
+
+.sp-cake-top {
+  position: relative;
+  z-index: 1;
+  height: clamp(30px, 4.2vw, 44px);
+  margin: 0 4%;
+  border-radius: 50% / 100% 100% 0 0;
+  background:
+    radial-gradient(circle at 12% 100%, var(--cake-light) 0 12%, transparent 13%),
+    radial-gradient(circle at 35% 100%, var(--cake-light) 0 10%, transparent 11%),
+    radial-gradient(circle at 62% 100%, var(--cake-light) 0 13%, transparent 14%),
+    radial-gradient(circle at 86% 100%, var(--cake-light) 0 11%, transparent 12%),
+    linear-gradient(180deg, #ffffff, var(--cake-light));
+  box-shadow: inset 0 4px 0 rgba(255, 255, 255, 0.8);
+}
+
+/* frosting drips hanging over the side of the cake */
+.sp-cake-top::after {
+  content: '';
+  position: absolute;
+  left: 3%;
+  right: 3%;
+  top: 100%;
+  height: 24px;
+  background:
+    radial-gradient(circle at 50% 0, var(--cake-light) 0 10px, transparent 11px) 0 0 / 34px 24px repeat-x,
+    radial-gradient(ellipse at 50% 0, var(--cake-light) 0 7px, transparent 8px) 17px 0 / 34px 18px repeat-x;
+}
+
+.sp-cake-body {
+  position: relative;
+  height: clamp(88px, 11vw, 124px);
+  margin: -4px 4% 0;
+  border-radius: 0 0 26px 26px;
+  background:
+    radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.85) 0 4px, transparent 5px) 0 0 / 46px 40px,
+    radial-gradient(circle at 70% 70%, rgba(255, 255, 255, 0.6) 0 3px, transparent 4px) 0 0 / 38px 34px,
+    linear-gradient(180deg, var(--cake), var(--cake-deep));
+  box-shadow: inset 0 -10px 0 rgba(0, 0, 0, 0.1), inset 0 8px 0 rgba(255, 255, 255, 0.25);
+}
+
+.sp-cake-plate {
+  height: 22px;
+  margin-top: -6px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #ffffff, #dfe6f5);
+  box-shadow: 0 8px 16px rgba(30, 40, 90, 0.2);
+}
+
+/* ---------- microphone ---------- */
+.sp-mic {
+  position: relative;
+  width: var(--sp-mic);
+  height: var(--sp-mic);
+  display: grid;
+  place-items: center;
+  border: 5px solid #ffffff;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ffffff, #ffe4e0);
+  box-shadow: 0 8px 0 rgba(217, 72, 59, 0.25), 0 14px 26px rgba(40, 70, 140, 0.22);
+  transition: transform 0.15s ease, filter 0.2s ease;
+}
+
+.sp-mic img {
+  position: relative;
+  width: 58%;
+  height: 58%;
+}
+
+.sp-mic:disabled {
+  filter: grayscale(0.6) opacity(0.5);
+  cursor: default;
+}
+
+.sp-mic.is-ready {
+  animation: sp-pulse 1.4s ease-in-out infinite;
+}
+
+.sp-mic.is-ready:active {
+  transform: translateY(5px);
+}
+
+.sp-mic-ring {
+  position: absolute;
+  inset: -10px;
+  border-radius: 50%;
+  border: 6px solid rgba(58, 139, 255, 0);
+  pointer-events: none;
+}
+
+/* while listening the rings swell with the child's voice, so they can see they are heard */
+.sp-mic.is-on {
+  filter: none;
+  background: radial-gradient(circle at 35% 30%, #ffffff, #dcf8e8);
+  box-shadow: 0 8px 0 rgba(34, 166, 83, 0.3), 0 0 0 calc(4px + var(--vol) * 26px) rgba(60, 207, 110, 0.28), 0 14px 26px rgba(40, 70, 140, 0.22);
+  transition: box-shadow 0.08s linear;
+}
+
+.sp-mic.is-on .sp-mic-ring {
+  border-color: rgba(60, 207, 110, 0.55);
+  animation: sp-ripple 1.6s ease-out infinite;
+}
+
+.sp-mic.is-on .sp-mic-ring-2 {
+  animation-delay: 0.8s;
+}
+
+/* ---------- keyframes ---------- */
+@keyframes sp-deal {
+  from { opacity: 0; transform: translateY(24px) scale(0.6); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes sp-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes sp-dance {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  25% { transform: translateY(-16px) rotate(-10deg); }
+  75% { transform: translateY(-6px) rotate(10deg); }
+}
+
+@keyframes sp-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.07); }
+}
+
+@keyframes sp-ripple {
+  from { transform: scale(0.9); opacity: 1; }
+  to { transform: scale(1.5); opacity: 0; }
+}
+
+@keyframes sp-flicker {
+  from { transform: scale(1, 1) translateX(0); opacity: 0.9; }
+  to { transform: scale(0.92, 1.08) translateX(1px); opacity: 1; }
+}
+
+@keyframes sp-smoke {
+  0% { opacity: 0.9; transform: translateY(0) scale(0.6); }
+  100% { opacity: 0; transform: translateY(-60px) scale(2.2); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sp *,
+  .sp *::before,
+  .sp *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+.ll-lite .sp-picture img,
+.ll-lite .sp-flame::after,
+.ll-lite .sp-mic.is-on .sp-mic-ring {
+  animation: none;
+}
+
+/* phones held sideways */
+@media (max-height: 520px) {
+  .sp {
+    --sp-picture: clamp(90px, 30vh, 130px);
+    --sp-unit: clamp(44px, 13vh, 60px);
+    --sp-mic: clamp(70px, 20vh, 92px);
+    --sp-candle: clamp(20px, 6vh, 28px);
+  }
+
+  .sp-cake {
+    width: clamp(200px, 30vw, 260px);
+  }
+
+  .sp-cake-body {
+    height: clamp(56px, 16vh, 76px);
+  }
+}

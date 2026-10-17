@@ -25,7 +25,7 @@ const MENU_TEXT = {
     hello: 'Hi, {name}!',
     sectionWords: 'Letters and speech',
     sectionMath: 'Numbers and logic',
-    sectionMore: 'Memory and art',
+    sectionMore: 'More games',
     words: 'Build a word',
     syllables: 'Syllables',
     alphabet: 'Alphabet',
@@ -33,6 +33,9 @@ const MENU_TEXT = {
     clap: 'Clap syllables',
     rhyme: 'Rhymes',
     soundQuiz: 'Guess the word',
+    echo: 'Repeat the sound',
+    sayIt: 'Say it in parts',
+    blow: 'Blow the candles',
     odd: 'Odd one out',
     pattern: 'What comes next?',
     sort: 'Sort it',
@@ -67,7 +70,7 @@ const MENU_TEXT = {
     hello: 'Привет, {name}!',
     sectionWords: 'Буквы и речь',
     sectionMath: 'Счёт и логика',
-    sectionMore: 'Память и творчество',
+    sectionMore: 'Ещё игры',
     words: 'Собери слово',
     syllables: 'Слоги',
     alphabet: 'Азбука',
@@ -75,6 +78,9 @@ const MENU_TEXT = {
     clap: 'Хлопай слоги',
     rhyme: 'Рифмы',
     soundQuiz: 'Угадай слово',
+    echo: 'Повтори звук',
+    sayIt: 'Скажи по слогам',
+    blow: 'Подуй на свечки',
     odd: 'Найди лишнее',
     pattern: 'Продолжи бусы',
     sort: 'Разложи',
@@ -109,7 +115,7 @@ const MENU_TEXT = {
     hello: 'Салам, {name}!',
     sectionWords: 'Тамгалар жана сүйлөө',
     sectionMath: 'Эсеп жана логика',
-    sectionMore: 'Эс тутум жана чыгармачылык',
+    sectionMore: 'Дагы оюндар',
     words: 'Сөз чогулт',
     syllables: 'Муундар',
     alphabet: 'Алиппе',
@@ -117,6 +123,9 @@ const MENU_TEXT = {
     clap: 'Муунга кол чап',
     rhyme: 'Уйкаштар',
     soundQuiz: 'Сөздү тап',
+    echo: 'Үндү кайтала',
+    sayIt: 'Муун менен айт',
+    blow: 'Шамды үйлө',
     odd: 'Артыгын тап',
     pattern: 'Мончокту улант',
     sort: 'Иреттеп сал',
@@ -151,7 +160,7 @@ const MENU_TEXT = {
     hello: 'Salom, {name}!',
     sectionWords: 'Harflar va nutq',
     sectionMath: 'Sanash va mantiq',
-    sectionMore: 'Xotira va ijod',
+    sectionMore: 'Yana o‘yinlar',
     words: 'So‘z yig‘',
     syllables: 'Bo‘g‘inlar',
     alphabet: 'Alifbo',
@@ -159,6 +168,9 @@ const MENU_TEXT = {
     clap: 'Bo‘g‘inga chapak',
     rhyme: 'Qofiyalar',
     soundQuiz: 'So‘zni top',
+    echo: 'Tovushni takrorla',
+    sayIt: 'Bo‘g‘inlab ayt',
+    blow: 'Shamni pufla',
     odd: 'Ortiqchasini top',
     pattern: 'Munchoqni davom ettir',
     sort: 'Saralab qo‘y',
@@ -194,9 +206,9 @@ const GAME_SECTIONS = [
       { key: 'syllables', icon: 'puzzle', color: 'violet', action: { state: 'PLAYING', playMode: 'SYLLABLES' } },
       { key: 'alphabet', icon: 'alphabet', color: 'sky', action: { state: 'ALPHABET', playMode: 'ALPHABET' } },
       { key: 'firstSound', icon: 'magnifier', color: 'mint', action: { state: 'FIRST_SOUND' } },
-      { key: 'clap', icon: 'clap', color: 'sun', action: { state: 'SYLLABLE_CLAP' } },
-      { key: 'rhyme', icon: 'music', color: 'pink', action: { state: 'RHYME_TIME' } },
-      { key: 'soundQuiz', icon: 'ear', color: 'teal', action: { state: 'SOUND_QUIZ' } }
+      { key: 'echo', icon: 'speaking', color: 'orange', action: { state: 'SPEAK', speakMode: 'ECHO' } },
+      { key: 'sayIt', icon: 'microphone', color: 'pink', action: { state: 'SPEAK', speakMode: 'SYLLABLES' } },
+      { key: 'blow', icon: 'candle', color: 'teal', action: { state: 'SPEAK', speakMode: 'BLOW' } }
     ]
   },
   {
@@ -219,6 +231,9 @@ const GAME_SECTIONS = [
       { key: 'memory', icon: 'cards', color: 'indigo', action: { state: 'MEMORY', memoryMode: 'PAIRS' } },
       { key: 'missing', icon: 'thinking', color: 'sun', action: { state: 'MEMORY', memoryMode: 'MISSING' } },
       { key: 'sequence', icon: 'paw', color: 'coral', action: { state: 'MEMORY', memoryMode: 'SEQUENCE' } },
+      { key: 'clap', icon: 'clap', color: 'sun', action: { state: 'SYLLABLE_CLAP' } },
+      { key: 'rhyme', icon: 'music', color: 'pink', action: { state: 'RHYME_TIME' } },
+      { key: 'soundQuiz', icon: 'ear', color: 'teal', action: { state: 'SOUND_QUIZ' } },
       { key: 'color', icon: 'palette', color: 'lime', action: { state: 'COLOR_BY_NUMBER' } }
     ]
   }
@@ -257,7 +272,7 @@ const writeProfiles = (profiles) => {
 
 export function MainMenu({
   lang, setLang, setGameState,
-  setPlayMode, setMathMode, setMemoryMode, setLogicMode,
+  setPlayMode, setMathMode, setMemoryMode, setLogicMode, setSpeakMode,
   currentUser, handleLogout,
   handleKidLogin, handleAdminLogin,
   speakText
@@ -324,6 +339,7 @@ export function MainMenu({
     if (game.action.mathMode) setMathMode(game.action.mathMode);
     if (game.action.memoryMode) setMemoryMode(game.action.memoryMode);
     if (game.action.logicMode) setLogicMode(game.action.logicMode);
+    if (game.action.speakMode) setSpeakMode(game.action.speakMode);
     speakText?.(text[game.key], { interrupt: true });
     setGameState(game.action.state);
   };

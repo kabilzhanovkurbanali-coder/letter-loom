@@ -16,6 +16,7 @@ import { SettingsScreen } from './components/SettingsScreen';
 import { RewardChestModal } from './components/RewardChestModal';
 import { AiTutorPanel } from './components/AiTutorPanel';
 import { MemoryGame } from './components/MemoryGame';
+import { LogicGame } from './components/LogicGame';
 import { SoundQuizScreen } from './components/SoundQuizScreen';
 import { ColorByNumberScreen } from './components/ColorByNumberScreen';
 import { SyllableClapScreen } from './components/SyllableClapScreen';
@@ -558,6 +559,7 @@ export default function App() {
   const [playMode, setPlayMode] = useState('WORDS');
   const [mathMode, setMathMode] = useState('COUNT');
   const [memoryMode, setMemoryMode] = useState('PAIRS');
+  const [logicMode, setLogicMode] = useState('ODD');
   const [serverData, setServerData] = useState(null);
   
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -1686,8 +1688,8 @@ export default function App() {
     setIsChestOpened(false);
   };
 
-  // A finished memory session: stars on the server and progress towards the treasure chest.
-  const handleMemorySessionComplete = async () => {
+  // A finished memory or logic session: stars on the server and progress towards the treasure chest.
+  const handlePlaySessionComplete = async () => {
     registerFreshWin();
     if (currentUser && !currentUser.offline && !currentUser.isAdmin) {
       try {
@@ -1852,6 +1854,7 @@ export default function App() {
           setPlayMode={setPlayMode}
           setMathMode={setMathMode}
           setMemoryMode={setMemoryMode}
+          setLogicMode={setLogicMode}
           setGameState={setGameState}
           currentUser={currentUser}
           handleLogout={handleLogout}
@@ -1907,7 +1910,21 @@ export default function App() {
           userKey={userKey}
           speakText={speakText}
           prefetchSpeech={safePrefetchSpeech}
-          onSessionComplete={handleMemorySessionComplete}
+          onSessionComplete={handlePlaySessionComplete}
+          onExit={() => setGameState('MENU')}
+        />
+      )}
+
+      {gameState === 'LOGIC' && (
+        <LogicGame
+          key={`${lang}-${logicMode}-${userKey}`}
+          lang={lang}
+          activity={logicMode}
+          vocabulary={words}
+          userKey={userKey}
+          speakText={speakText}
+          prefetchSpeech={safePrefetchSpeech}
+          onSessionComplete={handlePlaySessionComplete}
           onExit={() => setGameState('MENU')}
         />
       )}

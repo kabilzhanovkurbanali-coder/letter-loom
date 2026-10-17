@@ -24,7 +24,7 @@ const MENU_TEXT = {
     chooseGame: "Let's play! Pick a game.",
     hello: 'Hi, {name}!',
     sectionWords: 'Letters and speech',
-    sectionMath: 'Numbers',
+    sectionMath: 'Numbers and logic',
     sectionMore: 'Memory and art',
     words: 'Build a word',
     syllables: 'Syllables',
@@ -33,6 +33,9 @@ const MENU_TEXT = {
     clap: 'Clap syllables',
     rhyme: 'Rhymes',
     soundQuiz: 'Guess the word',
+    odd: 'Odd one out',
+    pattern: 'What comes next?',
+    sort: 'Sort it',
     memory: 'Find a pair',
     missing: 'What’s missing?',
     sequence: 'Repeat after me',
@@ -63,7 +66,7 @@ const MENU_TEXT = {
     chooseGame: 'Давай играть! Выбери игру.',
     hello: 'Привет, {name}!',
     sectionWords: 'Буквы и речь',
-    sectionMath: 'Счёт',
+    sectionMath: 'Счёт и логика',
     sectionMore: 'Память и творчество',
     words: 'Собери слово',
     syllables: 'Слоги',
@@ -72,6 +75,9 @@ const MENU_TEXT = {
     clap: 'Хлопай слоги',
     rhyme: 'Рифмы',
     soundQuiz: 'Угадай слово',
+    odd: 'Найди лишнее',
+    pattern: 'Продолжи бусы',
+    sort: 'Разложи',
     memory: 'Найди пару',
     missing: 'Что исчезло?',
     sequence: 'Повтори',
@@ -102,7 +108,7 @@ const MENU_TEXT = {
     chooseGame: 'Кел, ойнойлу! Оюн танда.',
     hello: 'Салам, {name}!',
     sectionWords: 'Тамгалар жана сүйлөө',
-    sectionMath: 'Эсеп',
+    sectionMath: 'Эсеп жана логика',
     sectionMore: 'Эс тутум жана чыгармачылык',
     words: 'Сөз чогулт',
     syllables: 'Муундар',
@@ -111,6 +117,9 @@ const MENU_TEXT = {
     clap: 'Муунга кол чап',
     rhyme: 'Уйкаштар',
     soundQuiz: 'Сөздү тап',
+    odd: 'Артыгын тап',
+    pattern: 'Мончокту улант',
+    sort: 'Иреттеп сал',
     memory: 'Жубун тап',
     missing: 'Эмне жок?',
     sequence: 'Кайтала',
@@ -141,7 +150,7 @@ const MENU_TEXT = {
     chooseGame: 'Keling, o‘ynaymiz! O‘yinni tanla.',
     hello: 'Salom, {name}!',
     sectionWords: 'Harflar va nutq',
-    sectionMath: 'Sanash',
+    sectionMath: 'Sanash va mantiq',
     sectionMore: 'Xotira va ijod',
     words: 'So‘z yig‘',
     syllables: 'Bo‘g‘inlar',
@@ -150,6 +159,9 @@ const MENU_TEXT = {
     clap: 'Bo‘g‘inga chapak',
     rhyme: 'Qofiyalar',
     soundQuiz: 'So‘zni top',
+    odd: 'Ortiqchasini top',
+    pattern: 'Munchoqni davom ettir',
+    sort: 'Saralab qo‘y',
     memory: 'Juftini top',
     missing: 'Nima yo‘q?',
     sequence: 'Takrorla',
@@ -194,7 +206,10 @@ const GAME_SECTIONS = [
       { key: 'mathCount', icon: 'abacus', color: 'orange', action: { state: 'MATH_PLAYING', mathMode: 'COUNT' } },
       { key: 'mathNumbers', icon: 'numbers', color: 'sky', action: { state: 'MATH_PLAYING', mathMode: 'NUMBERS' } },
       { key: 'mathCompare', icon: 'scale', color: 'teal', action: { state: 'MATH_PLAYING', mathMode: 'COMPARE' } },
-      { key: 'mathAdd', icon: 'plus', color: 'pink', action: { state: 'MATH_PLAYING', mathMode: 'ADD' } }
+      { key: 'mathAdd', icon: 'plus', color: 'pink', action: { state: 'MATH_PLAYING', mathMode: 'ADD' } },
+      { key: 'odd', icon: 'brain', color: 'violet', action: { state: 'LOGIC', logicMode: 'ODD' } },
+      { key: 'pattern', icon: 'shapes', color: 'mint', action: { state: 'LOGIC', logicMode: 'PATTERN' } },
+      { key: 'sort', icon: 'basket', color: 'sun', action: { state: 'LOGIC', logicMode: 'SORT' } }
     ]
   },
   {
@@ -242,7 +257,7 @@ const writeProfiles = (profiles) => {
 
 export function MainMenu({
   lang, setLang, setGameState,
-  setPlayMode, setMathMode, setMemoryMode,
+  setPlayMode, setMathMode, setMemoryMode, setLogicMode,
   currentUser, handleLogout,
   handleKidLogin, handleAdminLogin,
   speakText
@@ -308,6 +323,7 @@ export function MainMenu({
     if (game.action.playMode) setPlayMode(game.action.playMode);
     if (game.action.mathMode) setMathMode(game.action.mathMode);
     if (game.action.memoryMode) setMemoryMode(game.action.memoryMode);
+    if (game.action.logicMode) setLogicMode(game.action.logicMode);
     speakText?.(text[game.key], { interrupt: true });
     setGameState(game.action.state);
   };

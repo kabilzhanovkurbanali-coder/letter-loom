@@ -79,3 +79,13 @@ export const sfxTada = () => playNotes([
   { type: 'sine', start: 1046, time: 0.38, duration: 0.42, peak: 0.022 },
   { type: 'sine', start: 1318, time: 0.42, duration: 0.38, peak: 0.012 }
 ]);
+
+// One clear note of a pentatonic scale, so any run of steps sounds like a little tune.
+const PENTATONIC = [523.25, 587.33, 659.25, 783.99, 880, 1046.5, 1174.66, 1318.51];
+export const sfxNote = (step) => {
+  const frequency = PENTATONIC[((step % PENTATONIC.length) + PENTATONIC.length) % PENTATONIC.length];
+  return playNotes([
+    { type: 'sine', start: frequency, time: 0, duration: 0.26, peak: 0.03 },
+    { type: 'triangle', start: frequency * 2, time: 0, duration: 0.08, peak: 0.008 }
+  ]);
+};

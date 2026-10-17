@@ -167,8 +167,9 @@
   box-shadow: 0 0 0 6px #5ee38a, 0 0 30px 8px rgba(60, 207, 110, 0.5), inset 0 -8px 0 rgba(160, 180, 220, 0.35);
 }
 
+/* cards wobble their contents, so the card's entrance animation never replays */
 .mg-plate-choice.is-wobble,
-.mg-card.is-wobble {
+.mg-card.is-wobble > * {
   animation: mg-wobble 0.45s ease;
 }
 
@@ -272,8 +273,11 @@
   box-shadow: 0 2px 0 var(--c3);
 }
 
-.mg-card.is-hint {
+.mg-card.is-hint > * {
   animation: mg-hint 0.9s ease-in-out infinite;
+}
+
+.mg-card.is-hint {
   box-shadow: 0 0 0 6px #ffd166, 0 0 26px 8px rgba(255, 196, 61, 0.75), 0 7px 0 var(--c3);
 }
 

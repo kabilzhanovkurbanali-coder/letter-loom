@@ -1,0 +1,474 @@
+.lg {
+  --lg-odd: clamp(96px, 11.5vw, 150px);
+  --lg-bead: clamp(30px, min(6.2vw, calc((100vw - 90px) / 10)), 84px);
+  --lg-choice: clamp(84px, 9.5vw, 116px);
+  --lg-item: clamp(64px, 7.6vw, 96px);
+  --lg-bin: clamp(132px, 15.5vw, 196px);
+}
+
+.lg-defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+.lg-board {
+  min-width: min(620px, 100%);
+}
+
+/* ---------- tokens ---------- */
+.lg-shape,
+.lg-pic {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 4px rgba(30, 40, 80, 0.2));
+  overflow: visible;
+}
+
+.lg-eye {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: lg-blink 4.2s ease-in-out infinite;
+}
+
+/* ---------- odd one out ---------- */
+.lg-odd-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: clamp(10px, 1.8vw, 22px);
+  padding: 6px;
+}
+
+.lg-odd-item {
+  width: var(--lg-odd);
+  height: var(--lg-odd);
+  display: grid;
+  place-items: center;
+  padding: calc(var(--lg-odd) * 0.14);
+  border: none;
+  border-radius: 32px;
+  background: linear-gradient(180deg, #ffffff, #f2f6ff);
+  box-shadow: inset 0 -5px 0 rgba(160, 180, 220, 0.3), 0 7px 0 #d3dcf2, 0 14px 20px rgba(30, 40, 90, 0.16);
+  animation: lg-deal 0.5s cubic-bezier(0.2, 1.4, 0.4, 1) calc(var(--i) * 0.09s) backwards;
+  transition: transform 0.15s ease, opacity 0.3s ease, filter 0.3s ease;
+}
+
+.lg-odd-item:active {
+  transform: translateY(5px);
+}
+
+.lg-odd-item.is-faded {
+  opacity: 0.35;
+  filter: grayscale(0.7);
+  transform: scale(0.88);
+  pointer-events: none;
+}
+
+/* state animations run on the child, so removing them never replays the button's entrance */
+.lg-odd-item.is-hint,
+.lg-choice.is-hint {
+  box-shadow: 0 0 0 6px #ffd166, 0 0 30px 10px rgba(255, 196, 61, 0.7), 0 7px 0 #e6c56b;
+}
+
+.lg-odd-item.is-hint > *,
+.lg-choice.is-hint > * {
+  animation: lg-hint 0.9s ease-in-out infinite;
+}
+
+.lg-odd-item.is-winner {
+  background: linear-gradient(180deg, #ecfff3, #d7f8e3);
+  box-shadow: 0 0 0 6px #5ee38a, 0 0 34px 10px rgba(60, 207, 110, 0.45), 0 7px 0 #3ccf6e;
+}
+
+.lg-odd-item.is-winner > * {
+  animation: lg-win 0.7s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+
+.lg-odd-item.is-dancing > *,
+.lg-bead.is-dancing > *,
+.lg-bin.is-dancing .lg-bin-item {
+  animation: lg-dance 0.6s ease-in-out calc(var(--i) * 0.07s) 3;
+}
+
+.lg-odd-item.is-wobble > *,
+.lg-choice.is-wobble > *,
+.lg-tray-item.is-wobble > * {
+  animation: lg-wobble 0.45s ease;
+}
+
+/* ---------- beads on a string ---------- */
+.lg-string {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(4px, 0.9vw, 10px);
+  padding: 18px clamp(10px, 2vw, 24px);
+}
+
+.lg-thread {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 5px;
+  margin-top: -2px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #e0b98c, #b98a58);
+  box-shadow: 0 2px 3px rgba(120, 80, 40, 0.25);
+}
+
+/* little knots at the ends of the string */
+.lg-thread::before,
+.lg-thread::after {
+  content: '';
+  position: absolute;
+  top: -5px;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #f1d2a8, #b98a58);
+}
+
+.lg-thread::before {
+  left: -4px;
+}
+
+.lg-thread::after {
+  right: -4px;
+}
+
+.lg-bead {
+  position: relative;
+  width: var(--lg-bead);
+  height: var(--lg-bead);
+  display: grid;
+  place-items: center;
+  animation: lg-bead-in 0.45s cubic-bezier(0.2, 1.6, 0.4, 1) calc(0.9s + var(--i) * 0.42s) backwards;
+}
+
+.lg-bead > * {
+  transition: transform 0.2s ease;
+}
+
+.lg-bead.is-hop > * {
+  animation: lg-hop 0.38s cubic-bezier(0.3, 0, 0.4, 1);
+}
+
+.lg-bead-slot {
+  border-radius: 50%;
+  border: 4px dashed #b9cdf5;
+  background: rgba(236, 243, 255, 0.92);
+}
+
+.lg-bead-slot.is-filled {
+  border-color: transparent;
+  background: transparent;
+}
+
+.lg-bead-slot.is-filled > * {
+  animation: lg-win 0.6s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+
+.lg-slot-mark {
+  font-weight: 900;
+  font-size: calc(var(--lg-bead) * 0.55);
+  line-height: 1;
+  color: #9fb4e2;
+  animation: lg-breathe 1.6s ease-in-out infinite;
+}
+
+.lg-choices {
+  min-height: calc(var(--lg-choice) + 36px);
+  transition: opacity 0.3s ease;
+}
+
+.lg-choices.is-waiting {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.lg-choice {
+  width: var(--lg-choice);
+  height: var(--lg-choice);
+  display: grid;
+  place-items: center;
+  padding: calc(var(--lg-choice) * 0.16);
+  border: none;
+  border-radius: 30px;
+  background: linear-gradient(180deg, #ffffff, #f2f6ff);
+  box-shadow: inset 0 -4px 0 rgba(160, 180, 220, 0.3), 0 6px 0 #d3dcf2, 0 12px 18px rgba(30, 40, 90, 0.16);
+  animation: lg-deal 0.45s cubic-bezier(0.2, 1.4, 0.4, 1) calc(var(--i) * 0.08s) backwards;
+  transition: transform 0.12s ease;
+}
+
+.lg-choice:active {
+  transform: translateY(4px);
+}
+
+/* ---------- sorting baskets ---------- */
+.lg-bins {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: clamp(16px, 3vw, 44px);
+  padding: calc(var(--lg-item) * 0.55) 8px 4px;
+}
+
+.lg-bin {
+  position: relative;
+  width: calc(var(--lg-bin) * var(--bin-scale));
+  height: calc(var(--lg-bin) * var(--bin-scale) * 0.78);
+  padding: 0;
+  border: none;
+  background: none;
+  animation: lg-deal 0.5s cubic-bezier(0.2, 1.4, 0.4, 1) calc(var(--i) * 0.1s) backwards;
+  transition: transform 0.18s ease;
+}
+
+.lg-bin-front {
+  position: absolute;
+  inset: 16% 0 0;
+  display: grid;
+  place-items: center;
+  border-radius: 14px 14px 42% 42% / 14px 14px 30% 30%;
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.16) 0 8px, rgba(255, 255, 255, 0) 8px 16px),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.07) 0 6px, rgba(0, 0, 0, 0) 6px 12px),
+    linear-gradient(180deg, var(--bin-light) 0%, var(--bin-main) 45%, var(--bin-deep) 100%);
+  box-shadow: inset 0 -8px 0 rgba(0, 0, 0, 0.12), 0 10px 0 var(--bin-deep), 0 18px 24px rgba(30, 40, 90, 0.25);
+}
+
+/* the rim of the basket */
+.lg-bin-front::before {
+  content: '';
+  position: absolute;
+  left: -5%;
+  right: -5%;
+  top: -7px;
+  height: 18px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--bin-light), var(--bin-deep));
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.12);
+}
+
+.lg-bin-label {
+  position: relative;
+  width: 46%;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  padding: 9%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ffffff, #eef3ff);
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.12), inset 0 -3px 0 rgba(160, 180, 220, 0.35);
+}
+
+.lg-bin-label .lg-face {
+  display: none;
+}
+
+.lg-size-sticker {
+  width: calc(100% * var(--s));
+  height: calc(100% * var(--s));
+  display: grid;
+  place-items: center;
+}
+
+.lg-size-sticker img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.lg-bin-items {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  bottom: 74%;
+  display: flex;
+  flex-wrap: wrap-reverse;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 2px;
+  pointer-events: none;
+}
+
+.lg-bin-item {
+  width: calc(var(--lg-item) * 0.62 * var(--s));
+  height: calc(var(--lg-item) * 0.62 * var(--s));
+  margin: 0 -4px;
+  animation: lg-land 0.45s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+
+.lg-bin.is-over {
+  transform: scale(1.08) translateY(-4px);
+}
+
+.lg-bin.is-over .lg-bin-front {
+  box-shadow: 0 0 0 6px #ffffff, 0 0 30px 10px rgba(255, 255, 255, 0.9), 0 10px 0 var(--bin-deep);
+}
+
+.lg-bin.is-hint .lg-bin-front {
+  box-shadow: 0 0 0 6px #ffd166, 0 0 34px 12px rgba(255, 196, 61, 0.75), 0 10px 0 var(--bin-deep);
+}
+
+.lg-bin.is-hint .lg-bin-front {
+  animation: lg-hint 0.9s ease-in-out infinite;
+}
+
+.lg-bin.is-waiting:not(.is-hint) .lg-bin-front {
+  animation: lg-breathe-soft 1.4s ease-in-out infinite;
+}
+
+.lg-tray {
+  min-height: calc(var(--lg-item) + 36px);
+}
+
+.lg-tray-item,
+.lg-tray-spot {
+  width: var(--lg-item);
+  height: var(--lg-item);
+}
+
+.lg-tray-item {
+  position: relative;
+  display: grid;
+  place-items: end center;
+  padding: 0;
+  border: none;
+  border-radius: 24px;
+  background: none;
+  touch-action: none;
+  cursor: grab;
+  animation: lg-deal 0.45s cubic-bezier(0.2, 1.4, 0.4, 1) calc(var(--i) * 0.07s) backwards;
+  transition: transform 0.25s cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+
+.lg-tray-art {
+  width: calc(100% * var(--s));
+  height: calc(100% * var(--s));
+}
+
+.lg-tray-item.is-dragging {
+  z-index: 30;
+  cursor: grabbing;
+  transition: none;
+}
+
+.lg-tray-item.is-dragging .lg-shape,
+.lg-tray-item.is-dragging .lg-pic {
+  filter: drop-shadow(0 16px 10px rgba(30, 40, 80, 0.3));
+}
+
+.lg-tray-item.is-selected {
+  transform: translateY(-10px) scale(1.08);
+  background: rgba(255, 241, 201, 0.9);
+  box-shadow: 0 0 0 5px #ffd166, 0 10px 20px rgba(217, 160, 40, 0.3);
+}
+
+/* ---------- keyframes ---------- */
+@keyframes lg-deal {
+  from { opacity: 0; transform: translateY(26px) scale(0.6) rotate(-6deg); }
+  to { opacity: 1; transform: translateY(0) scale(1) rotate(0); }
+}
+
+@keyframes lg-bead-in {
+  0% { opacity: 0; transform: translateY(-40px) scale(0.4); }
+  70% { opacity: 1; transform: translateY(4px) scale(1.1); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes lg-hop {
+  0%, 100% { transform: translateY(0) scale(1); }
+  45% { transform: translateY(-18px) scale(1.15); }
+  75% { transform: translateY(0) scale(1.08, 0.92); }
+}
+
+@keyframes lg-land {
+  0% { transform: translateY(-50px) scale(1.4); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+@keyframes lg-win {
+  0% { transform: scale(0.6) rotate(-8deg); }
+  60% { transform: scale(1.18) rotate(4deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+
+@keyframes lg-dance {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  25% { transform: translateY(-12px) rotate(-10deg); }
+  75% { transform: translateY(-5px) rotate(10deg); }
+}
+
+@keyframes lg-hint {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-8px) scale(1.05); }
+}
+
+@keyframes lg-wobble {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-8px) rotate(-3deg); }
+  75% { transform: translateX(8px) rotate(3deg); }
+}
+
+@keyframes lg-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.14); }
+}
+
+@keyframes lg-breathe-soft {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+}
+
+@keyframes lg-blink {
+  0%, 92%, 100% { transform: scaleY(1); }
+  95% { transform: scaleY(0.1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lg *,
+  .lg *::before {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.ll-lite .lg-eye,
+.ll-lite .lg-slot-mark,
+.ll-lite .lg-bin.is-waiting .lg-bin-front {
+  animation: none;
+}
+
+.ll-lite .lg-shape,
+.ll-lite .lg-pic {
+  filter: none;
+}
+
+/* phones held sideways */
+@media (max-height: 520px) {
+  .lg {
+    --lg-odd: clamp(60px, 18vh, 84px);
+    --lg-bead: clamp(28px, 10vh, 46px);
+    --lg-choice: clamp(54px, 15vh, 70px);
+    --lg-item: clamp(44px, 13vh, 60px);
+    --lg-bin: clamp(84px, 24vh, 112px);
+  }
+
+  .lg-board {
+    flex-direction: column;
+  }
+
+  .lg-odd-item,
+  .lg-choice {
+    border-radius: 20px;
+  }
+}

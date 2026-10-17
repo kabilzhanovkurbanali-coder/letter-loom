@@ -218,8 +218,9 @@
   transform: translateY(4px);
 }
 
-.mm-choice.is-wobble,
-.mm-pad.is-wobble {
+/* wobble the picture, not the button, so the button's entrance animation never replays */
+.mm-choice.is-wobble img,
+.mm-pad.is-wobble img {
   animation: mm-wobble 0.45s ease;
 }
 

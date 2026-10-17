@@ -15,7 +15,7 @@ import { AlphabetScreen } from './components/AlphabetScreen';
 import { SettingsScreen } from './components/SettingsScreen';
 import { RewardChestModal } from './components/RewardChestModal';
 import { AiTutorPanel } from './components/AiTutorPanel';
-import { MemoryFlipScreen } from './components/MemoryFlipScreen';
+import { MemoryGame } from './components/MemoryGame';
 import { SoundQuizScreen } from './components/SoundQuizScreen';
 import { ColorByNumberScreen } from './components/ColorByNumberScreen';
 import { SyllableClapScreen } from './components/SyllableClapScreen';
@@ -557,6 +557,7 @@ export default function App() {
   const [gameState, setGameState] = useState('MENU'); 
   const [playMode, setPlayMode] = useState('WORDS');
   const [mathMode, setMathMode] = useState('COUNT');
+  const [memoryMode, setMemoryMode] = useState('PAIRS');
   const [serverData, setServerData] = useState(null);
   
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -1076,6 +1077,12 @@ export default function App() {
     speechPrefetchInflightRef.current.set(cacheKey, fetchPromise);
     return fetchPromise;
   }, [buildRemoteSpeechStreamUrl, buildSpeechPrefetchKey, normalizeSpeechText, resolveSpeechRate]);
+
+  // Games warm the cache in the background; an unreachable voice service must not raise errors.
+  const safePrefetchSpeech = useCallback(
+    (text, options) => prefetchRemoteSpeech(text, options).catch(() => null),
+    [prefetchRemoteSpeech]
+  );
 
   const playRemoteAudioUrl = async (url, requestOptions) => {
     const audio = getReusableSpeechAudio();
@@ -1679,6 +1686,24 @@ export default function App() {
     setIsChestOpened(false);
   };
 
+  // A finished memory session: stars on the server and progress towards the treasure chest.
+  const handleMemorySessionComplete = async () => {
+    registerFreshWin();
+    if (currentUser && !currentUser.offline && !currentUser.isAdmin) {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/update-score`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: currentUser.username, points: 10 })
+        });
+        const data = await res.json();
+        if (data.success) setCurrentUser((prev) => (prev ? { ...prev, score: data.newScore } : prev));
+      } catch {
+        console.error('Не удалось сохранить прогресс');
+      }
+    }
+  };
+
   // Five math tasks in a row: a medal for the album and stars on the server.
   const handleMathSessionComplete = async ({ activity, title, desc, object }) => {
     const emojiByObject = {
@@ -1826,6 +1851,7 @@ export default function App() {
           setLang={handleLanguageChange}
           setPlayMode={setPlayMode}
           setMathMode={setMathMode}
+          setMemoryMode={setMemoryMode}
           setGameState={setGameState}
           currentUser={currentUser}
           handleLogout={handleLogout}
@@ -1846,7 +1872,7 @@ export default function App() {
           solvedIds={playMode === 'SYLLABLES' ? syllableStickers : stickers}
           userKey={userKey}
           speakText={speakText}
-          prefetchSpeech={prefetchRemoteSpeech}
+          prefetchSpeech={safePrefetchSpeech}
           onWordComplete={handleWordComplete}
           onExit={() => setGameState('MENU')}
         />
@@ -1866,18 +1892,23 @@ export default function App() {
           activity={mathMode}
           userKey={userKey}
           speakText={speakText}
-          prefetchSpeech={prefetchRemoteSpeech}
+          prefetchSpeech={safePrefetchSpeech}
           onSessionComplete={handleMathSessionComplete}
           onExit={() => setGameState('MENU')}
         />
       )}
 
-      {gameState === 'MEMORY_FLIP' && (
-        <MemoryFlipScreen
+      {gameState === 'MEMORY' && (
+        <MemoryGame
+          key={`${lang}-${memoryMode}-${userKey}`}
           lang={lang}
-          currentTheme={currentTheme}
+          activity={memoryMode}
+          vocabulary={words}
+          userKey={userKey}
           speakText={speakText}
-          onClose={() => setGameState('MENU')}
+          prefetchSpeech={safePrefetchSpeech}
+          onSessionComplete={handleMemorySessionComplete}
+          onExit={() => setGameState('MENU')}
         />
       )}
       {gameState === 'SOUND_QUIZ' && (

@@ -34,6 +34,8 @@ const MENU_TEXT = {
     rhyme: 'Rhymes',
     soundQuiz: 'Guess the word',
     memory: 'Find a pair',
+    missing: 'What’s missing?',
+    sequence: 'Repeat after me',
     color: 'Coloring',
     mathCount: 'Counting',
     mathNumbers: 'Numbers',
@@ -71,6 +73,8 @@ const MENU_TEXT = {
     rhyme: 'Рифмы',
     soundQuiz: 'Угадай слово',
     memory: 'Найди пару',
+    missing: 'Что исчезло?',
+    sequence: 'Повтори',
     color: 'Раскраска',
     mathCount: 'Считаем',
     mathNumbers: 'Цифры',
@@ -108,6 +112,8 @@ const MENU_TEXT = {
     rhyme: 'Уйкаштар',
     soundQuiz: 'Сөздү тап',
     memory: 'Жубун тап',
+    missing: 'Эмне жок?',
+    sequence: 'Кайтала',
     color: 'Боёо',
     mathCount: 'Санайбыз',
     mathNumbers: 'Сандар',
@@ -145,6 +151,8 @@ const MENU_TEXT = {
     rhyme: 'Qofiyalar',
     soundQuiz: 'So‘zni top',
     memory: 'Juftini top',
+    missing: 'Nima yo‘q?',
+    sequence: 'Takrorla',
     color: 'Bo‘yash',
     mathCount: 'Sanaymiz',
     mathNumbers: 'Raqamlar',
@@ -193,7 +201,9 @@ const GAME_SECTIONS = [
     key: 'sectionMore',
     tone: 'more',
     games: [
-      { key: 'memory', icon: 'cards', color: 'indigo', action: { state: 'MEMORY_FLIP' } },
+      { key: 'memory', icon: 'cards', color: 'indigo', action: { state: 'MEMORY', memoryMode: 'PAIRS' } },
+      { key: 'missing', icon: 'thinking', color: 'sun', action: { state: 'MEMORY', memoryMode: 'MISSING' } },
+      { key: 'sequence', icon: 'paw', color: 'coral', action: { state: 'MEMORY', memoryMode: 'SEQUENCE' } },
       { key: 'color', icon: 'palette', color: 'lime', action: { state: 'COLOR_BY_NUMBER' } }
     ]
   }
@@ -232,7 +242,7 @@ const writeProfiles = (profiles) => {
 
 export function MainMenu({
   lang, setLang, setGameState,
-  setPlayMode, setMathMode,
+  setPlayMode, setMathMode, setMemoryMode,
   currentUser, handleLogout,
   handleKidLogin, handleAdminLogin,
   speakText
@@ -297,6 +307,7 @@ export function MainMenu({
   const openGame = (game) => {
     if (game.action.playMode) setPlayMode(game.action.playMode);
     if (game.action.mathMode) setMathMode(game.action.mathMode);
+    if (game.action.memoryMode) setMemoryMode(game.action.memoryMode);
     speakText?.(text[game.key], { interrupt: true });
     setGameState(game.action.state);
   };

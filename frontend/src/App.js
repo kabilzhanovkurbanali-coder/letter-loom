@@ -10,7 +10,7 @@ import { AdminPanel } from './components/AdminPanel';
 import { Achievements } from './components/Achievements';
 import { MainMenu } from './components/MainMenu';
 import { WordGame } from './components/WordGame';
-import { MiniMathScreen } from './components/MiniMathScreen';
+import { MathGame } from './components/MathGame';
 import { AlphabetScreen } from './components/AlphabetScreen';
 import { SettingsScreen } from './components/SettingsScreen';
 import { RewardChestModal } from './components/RewardChestModal';
@@ -556,7 +556,7 @@ export default function App() {
   const [theme, setTheme] = useState('OCEAN'); 
   const [gameState, setGameState] = useState('MENU'); 
   const [playMode, setPlayMode] = useState('WORDS');
-  const [mathMode, setMathMode] = useState('FRUITS');
+  const [mathMode, setMathMode] = useState('COUNT');
   const [serverData, setServerData] = useState(null);
   
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -1679,6 +1679,32 @@ export default function App() {
     setIsChestOpened(false);
   };
 
+  // Five math tasks in a row: a medal for the album and stars on the server.
+  const handleMathSessionComplete = async ({ activity, title, desc, object }) => {
+    const emojiByObject = {
+      apple: '🍎', banana: '🍌', cherry: '🍒', strawberry: '🍓', ball: '⚽', duck: '🦆', fish: '🐟', star: '⭐',
+      tulip: '🌷', car: '🚗', balloon: '🎈', bee: '🐝', ladybug: '🐞', cookie: '🍪', egg: '🥚', orange: '🍊',
+      pear: '🍐', carrot: '🥕', bird: '🐦', frog: '🐸', rabbit: '🐰', chick: '🐤', butterfly: '🦋'
+    };
+    setMathCollection((prev) => [
+      ...prev,
+      { id: `${activity.toLowerCase()}-${prev.length + 1}`, type: 'medal', icon: emojiByObject[object] || '⭐', title: `${title} ${prev.length + 1}`, desc }
+    ]);
+    if (currentUser && !currentUser.offline && !currentUser.isAdmin) {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/update-score`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: currentUser.username, points: 10 })
+        });
+        const data = await res.json();
+        if (data.success) setCurrentUser((prev) => (prev ? { ...prev, score: data.newScore } : prev));
+      } catch {
+        console.error('Не удалось сохранить прогресс');
+      }
+    }
+  };
+
   // Rewards for a built word: stars on the server, a sticker, achievements, chest progress.
   const handleWordComplete = async (level) => {
     if (!level?.id) return;
@@ -1714,7 +1740,7 @@ export default function App() {
 
   const currentTheme = themes[theme] || themes.OCEAN;
   // The word game has Irbi built in, so the floating tutor is only shown in the other games.
-  const aiTutorVisible = ['MATH_PLAYING', 'SYLLABLE_CLAP', 'RHYME_TIME', 'FIRST_SOUND'].includes(gameState);
+  const aiTutorVisible = ['SYLLABLE_CLAP', 'RHYME_TIME', 'FIRST_SOUND'].includes(gameState);
   const aiTutorContext = useMemo(() => ({
     language: lang,
     gameState,
@@ -1834,14 +1860,15 @@ export default function App() {
         />
       )}
       {gameState === 'MATH_PLAYING' && (
-        <MiniMathScreen
+        <MathGame
+          key={`${lang}-${mathMode}-${userKey}`}
           lang={lang}
-          mathMode={mathMode}
-          currentTheme={currentTheme}
-          collection={mathCollection}
-          onCollectionChange={setMathCollection}
+          activity={mathMode}
+          userKey={userKey}
           speakText={speakText}
-          onClose={() => setGameState('MENU')}
+          prefetchSpeech={prefetchRemoteSpeech}
+          onSessionComplete={handleMathSessionComplete}
+          onExit={() => setGameState('MENU')}
         />
       )}
 

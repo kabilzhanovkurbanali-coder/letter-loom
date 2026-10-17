@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import confetti from 'canvas-confetti';
-import { Irbi } from './Irbi';
-import { ValleyScene } from './ValleyScene';
+import { GameBoard, GameShell, NextButton } from './GameShell';
 import { normalizeImageUrl, pictureUrl } from '../lib/api';
 import { ALPHABET_UNITS, getLetterName } from '../lib/letters';
 import { sfxBoop, sfxPick, sfxPlace, sfxTada, sfxWhoosh } from '../lib/sfx';
@@ -9,8 +8,8 @@ import './WordGame.css';
 
 // A short session keeps young children focused: 5 words, then a celebration.
 const SESSION_SIZE = 5;
-// Adaptive difficulty. 1: ghost letters + tap-to-place, short words. 2: ghost letters, one extra
-// tile. 3: empty slots, two extra tiles, any length.
+// Adaptive difficulty. Ghost letters stay in the slots at every level.
+// 1: short words, tap-to-place. 2: longer words, one extra tile. 3: any length, two extra tiles.
 const MAX_UNITS_BY_LEVEL = { WORDS: [0, 4, 6, Infinity], SYLLABLES: [0, 2, 3, Infinity] };
 const DISTRACTORS_BY_LEVEL = [0, 0, 1, 2];
 const IDLE_HINT_MS = 9000;
@@ -458,154 +457,109 @@ export function WordGame({
     setCurrentIdx(pickNextIndex(levels, currentIdx, levelRef.current, mode, solvedIds));
   };
 
+  const labels = { home: t.home, listen: t.listen };
+  const shellProps = {
+    stars: sessionWins.length,
+    totalStars: SESSION_SIZE,
+    labels,
+    onExit,
+    onListen: () => say(promptText),
+    bubble,
+    irbiMood,
+    onIrbiTap: () => say(promptText)
+  };
+
   if (!word || !round) {
-    return (
-      <div className="wg">
-        <ValleyScene />
-        <header className="wg-top">
-          <button type="button" className="wg-round-btn" onClick={onExit} aria-label={t.home}>
-            <img src={pictureUrl('house')} alt="" />
-          </button>
-        </header>
-      </div>
-    );
+    return <GameShell {...shellProps} />;
   }
 
-  const showGhost = (index) => level < 3 || hintSlot === index;
   const pictureSrc = word.img ? normalizeImageUrl(word.img) : pictureUrl('sparkles');
   const aliveKind = aliveKindFor(imageKeyOf(word));
   const isSyllables = mode === 'SYLLABLES';
 
   return (
-    <div className={`wg ${isSyllables ? 'wg-syllables' : ''}`}>
-      <ValleyScene />
-
-      <header className="wg-top">
-        <button type="button" className="wg-round-btn" onClick={onExit} aria-label={t.home} title={t.home}>
-          <img src={pictureUrl('house')} alt="" />
-        </button>
-        <div className="wg-stars" aria-label={`${sessionWins.length} / ${SESSION_SIZE}`}>
-          {Array.from({ length: SESSION_SIZE }, (_, index) => (
-            <span key={index} className={`wg-star ${index < sessionWins.length ? 'is-on' : ''}`}>
-              <img src={pictureUrl('star')} alt="" />
-            </span>
-          ))}
-        </div>
-        <button type="button" className="wg-round-btn" onClick={() => say(promptText)} aria-label={t.listen} title={t.listen}>
-          <img src={pictureUrl('speaker')} alt="" />
-        </button>
-      </header>
-
-      <main className="wg-main">
-        <section className="wg-board">
-          <button
-            type="button"
-            ref={pictureRef}
-            className={`wg-picture-wrap ${status === 'done' ? `is-alive wg-alive-${aliveKind}` : ''}`}
-            onClick={() => speakText?.(spokenWord(word), { ...SPEAK_WORD, interrupt: true })}
-            aria-label={spokenWord(word)}
-          >
-            <span className="wg-spotlight" />
-            <img key={word.id} className="wg-picture" src={pictureSrc} alt="" draggable="false" />
-            {status === 'done' ? (
-              <span className="wg-burst" aria-hidden="true">
-                {Array.from({ length: 10 }, (_, index) => <i key={index} style={{ '--a': `${index * 36}deg` }} />)}
-              </span>
-            ) : null}
-          </button>
-
+    <GameShell
+      {...shellProps}
+      className={`wg ${isSyllables ? 'wg-syllables' : ''} ${tiles.length >= 7 ? 'wg-crowded' : ''}`}
+      session={{
+        open: showSession,
+        title: t.sessionDone,
+        pictures: sessionWins.map((item) => (item.img ? normalizeImageUrl(item.img) : pictureUrl('sparkles'))),
+        moreLabel: t.more,
+        menuLabel: t.menu,
+        onMore: startNewSession,
+        onMenu: onExit
+      }}
+    >
+      <GameBoard icon={isSyllables ? 'puzzle' : 'blocks'}>
+        <button
+          type="button"
+          ref={pictureRef}
+          className={`wg-picture-wrap ${status === 'done' ? `is-alive wg-alive-${aliveKind}` : ''}`}
+          onClick={() => speakText?.(spokenWord(word), { ...SPEAK_WORD, interrupt: true })}
+          aria-label={spokenWord(word)}
+        >
+          <span className="wg-spotlight" />
+          <img key={word.id} className="wg-picture" src={pictureSrc} alt="" draggable="false" />
           {status === 'done' ? (
-            <div className="wg-word" aria-live="polite">
-              {units.map((unit, index) => {
-                const [c1, c2] = colorFor(unit);
-                return (
-                  <span key={`${unit}-${index}`} className="wg-word-unit" style={{ '--c1': c1, '--c2': c2, '--i': index }}>{unit}</span>
-                );
-              })}
-            </div>
-          ) : (
-            <div className={`wg-slots ${status === 'celebrating' ? 'is-wave' : ''}`}>
-              {units.map((unit, index) => {
-                const isFilled = placed[index] !== undefined;
-                return (
-                  <div
-                    key={`${round.wordId}-${index}`}
-                    ref={(node) => { slotRefs.current[index] = node; }}
-                    data-unit={unit}
-                    className={`wg-slot ${isFilled ? 'is-filled' : ''} ${wobbleSlot === index ? 'is-wobble' : ''} ${hintSlot === index ? 'is-hint' : ''}`}
-                    style={{ '--i': index }}
-                  >
-                    {isFilled ? (
-                      <LetterFace unit={unit} happy />
-                    ) : showGhost(index) ? (
-                      <span className="wg-ghost">{unit}</span>
-                    ) : null}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </section>
+            <span className="wg-burst" aria-hidden="true">
+              {Array.from({ length: 10 }, (_, index) => <i key={index} style={{ '--a': `${index * 36}deg` }} />)}
+            </span>
+          ) : null}
+        </button>
 
         {status === 'done' ? (
-          <button type="button" className="wg-next" onClick={goNext}>
-            {t.next}
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.2-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z" fill="currentColor" /></svg>
-          </button>
-        ) : (
-          <section className="wg-bank">
-            {tiles.map((tile, index) => (
-              usedTileIds.has(tile.id) ? (
-                <span key={tile.id} className="wg-tile-spot" />
-              ) : (
-                <LetterTile
-                  key={tile.id}
-                  tile={tile}
-                  index={index}
-                  isHint={hintTileId === tile.id}
-                  isNudged={nudgeTileId === tile.id}
-                  disabled={status !== 'playing'}
-                  onTap={handleTap}
-                  onDrop={handleDrop}
-                />
-              )
-            ))}
-          </section>
-        )}
-      </main>
-
-      <aside className="wg-guide">
-        {bubble ? (
-          <button type="button" className="wg-bubble" onClick={() => say(promptText)}>{bubble}</button>
-        ) : null}
-        <button type="button" className="wg-guide-irbi" onClick={() => say(promptText)} aria-label="Irbi">
-          <Irbi mood={irbiMood} size={176} />
-        </button>
-      </aside>
-
-      {showSession ? (
-        <div className="wg-session">
-          <div className="wg-session-card">
-            <Irbi mood="cheer" size={170} />
-            <h2 className="wg-session-title">{t.sessionDone}</h2>
-            <div className="wg-session-pics">
-              {sessionWins.map((item, index) => (
-                <img
-                  key={`${item.id}-${index}`}
-                  src={item.img ? normalizeImageUrl(item.img) : pictureUrl('sparkles')}
-                  alt=""
-                  style={{ '--i': index }}
-                />
-              ))}
-            </div>
-            <div className="wg-session-actions">
-              <button type="button" className="wg-next" onClick={startNewSession}>{t.more}</button>
-              <button type="button" className="wg-secondary" onClick={onExit}>{t.menu}</button>
-            </div>
+          <div className="wg-word" aria-live="polite">
+            {units.map((unit, index) => {
+              const [c1, c2] = colorFor(unit);
+              return (
+                <span key={`${unit}-${index}`} className="wg-word-unit" style={{ '--c1': c1, '--c2': c2, '--i': index }}>{unit}</span>
+              );
+            })}
           </div>
-        </div>
-      ) : null}
-    </div>
+        ) : (
+          <div className={`wg-slots ${status === 'celebrating' ? 'is-wave' : ''}`}>
+            {units.map((unit, index) => {
+              const isFilled = placed[index] !== undefined;
+              return (
+                <div
+                  key={`${round.wordId}-${index}`}
+                  ref={(node) => { slotRefs.current[index] = node; }}
+                  data-unit={unit}
+                  className={`wg-slot ${isFilled ? 'is-filled' : ''} ${wobbleSlot === index ? 'is-wobble' : ''} ${hintSlot === index ? 'is-hint' : ''}`}
+                  style={{ '--i': index }}
+                >
+                  {isFilled ? <LetterFace unit={unit} happy /> : <span className="wg-ghost">{unit}</span>}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </GameBoard>
+
+      {status === 'done' ? (
+        <NextButton onClick={goNext}>{t.next}</NextButton>
+      ) : (
+        <section className="gs-shelf wg-bank">
+          {tiles.map((tile, index) => (
+            usedTileIds.has(tile.id) ? (
+              <span key={tile.id} className="wg-tile-spot" />
+            ) : (
+              <LetterTile
+                key={tile.id}
+                tile={tile}
+                index={index}
+                isHint={hintTileId === tile.id}
+                isNudged={nudgeTileId === tile.id}
+                disabled={status !== 'playing'}
+                onTap={handleTap}
+                onDrop={handleDrop}
+              />
+            )
+          ))}
+        </section>
+      )}
+    </GameShell>
   );
 }
 

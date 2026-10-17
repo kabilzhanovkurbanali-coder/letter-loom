@@ -1,0 +1,392 @@
+.mg {
+  --mg-object: clamp(54px, 6.6vw, 80px);
+  --mg-card: clamp(84px, 9vw, 112px);
+}
+
+.mg-board {
+  min-width: min(620px, 100%);
+}
+
+/* ---------- objects ---------- */
+/* rows of five, centred, like a ten-frame */
+.mg-field {
+  --mg-gap: clamp(8px, 1.4vw, 16px);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-content: center;
+  gap: var(--mg-gap);
+  max-width: calc(var(--mg-object) * 5 + var(--mg-gap) * 4);
+  min-height: calc(var(--mg-object) * 2 + 16px);
+}
+
+.mg-object {
+  position: relative;
+  width: var(--mg-object);
+  height: var(--mg-object);
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  animation: mg-object-in 0.5s cubic-bezier(0.2, 1.5, 0.4, 1) calc(var(--i) * 0.08s) backwards;
+}
+
+.mg-object img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 6px rgba(30, 40, 80, 0.22));
+  transition: transform 0.2s ease;
+}
+
+.mg-object:not(.is-static):active img {
+  transform: scale(0.9);
+}
+
+.mg-object.is-counted img {
+  animation: mg-hop 0.45s cubic-bezier(0.3, 0, 0.4, 1);
+}
+
+.mg-object.is-counted::before {
+  content: '';
+  position: absolute;
+  inset: -6%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 214, 102, 0.55), rgba(255, 214, 102, 0) 70%);
+}
+
+.mg-count-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  min-width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #3a8bff;
+  border: 3px solid #ffffff;
+  color: #ffffff;
+  font-weight: 900;
+  font-size: 1rem;
+  box-shadow: 0 3px 6px rgba(30, 60, 140, 0.3);
+  animation: mg-badge 0.4s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+
+.mg-object.is-dancing img {
+  animation: mg-dance 0.6s ease-in-out calc(var(--i) * 0.07s) 3;
+}
+
+/* ---------- listen for a number ---------- */
+.mg-listen {
+  min-height: calc(var(--mg-object) * 2 + 16px);
+  display: grid;
+  place-items: center;
+}
+
+.mg-listen-btn {
+  width: clamp(120px, 16vh, 160px);
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ffffff, #dff0ff);
+  box-shadow: 0 0 0 10px rgba(58, 139, 255, 0.12), 0 12px 24px rgba(40, 70, 140, 0.2);
+  animation: mg-ripple 2s ease-out infinite;
+}
+
+.mg-listen-btn img {
+  width: 58%;
+  height: 58%;
+}
+
+/* ---------- plates (adding, comparing) ---------- */
+.mg-equation,
+.mg-compare {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(8px, 1.6vw, 18px);
+}
+
+.mg-plate {
+  position: relative;
+  min-width: clamp(140px, 17vw, 220px);
+  min-height: calc(var(--mg-object) * 1.9);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 12px 12px;
+  border: none;
+  border-radius: 50% / 34%;
+  background: radial-gradient(ellipse at 50% 40%, #ffffff 55%, #e8eefb 100%);
+  box-shadow: inset 0 -8px 0 rgba(160, 180, 220, 0.35), 0 10px 18px rgba(40, 70, 140, 0.16);
+}
+
+.mg-plate-items {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+  max-width: calc(var(--mg-object) * 3.2);
+}
+
+.mg-plate .mg-object {
+  width: calc(var(--mg-object) * 0.82);
+  height: calc(var(--mg-object) * 0.82);
+}
+
+.mg-compare .mg-plate {
+  min-width: clamp(170px, 22vw, 280px);
+  min-height: calc(var(--mg-object) * 2.4);
+}
+
+.mg-compare .mg-plate-items {
+  max-width: calc(var(--mg-object) * 4.2);
+}
+
+.mg-plate-choice {
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.mg-plate-choice:active {
+  transform: scale(0.97);
+}
+
+.mg-plate-choice.is-hint {
+  box-shadow: 0 0 0 6px #ffd166, 0 0 30px 8px rgba(255, 196, 61, 0.6), inset 0 -8px 0 rgba(160, 180, 220, 0.35);
+  animation: mg-hint 1s ease-in-out infinite;
+}
+
+.mg-plate-choice.is-winner {
+  box-shadow: 0 0 0 6px #5ee38a, 0 0 30px 8px rgba(60, 207, 110, 0.5), inset 0 -8px 0 rgba(160, 180, 220, 0.35);
+}
+
+.mg-plate-choice.is-wobble,
+.mg-card.is-wobble {
+  animation: mg-wobble 0.45s ease;
+}
+
+.mg-sign {
+  font-weight: 900;
+  font-size: clamp(2.4rem, 5vw, 3.6rem);
+  color: #8aa0cf;
+  text-shadow: 0 3px 0 #ffffff;
+}
+
+.mg-compare-sign.is-shown {
+  color: #3ccf6e;
+  animation: mg-badge 0.5s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+
+.mg-answer-box {
+  width: clamp(84px, 9vw, 110px);
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border-radius: 28px;
+  background: linear-gradient(180deg, #e6eeff, #f3f7ff);
+  box-shadow: inset 0 6px 10px rgba(80, 110, 180, 0.22), inset 0 -3px 0 rgba(255, 255, 255, 0.9);
+}
+
+.mg-answer-box.is-solved {
+  background: transparent;
+  box-shadow: none;
+}
+
+.mg-question {
+  font-weight: 900;
+  font-size: 3rem;
+  color: #b5c6ea;
+  animation: mg-breathe 1.6s ease-in-out infinite;
+}
+
+/* ---------- number chips & cards ---------- */
+.mg-chip {
+  min-width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  padding: 0 10px;
+  border-radius: 16px;
+  background: linear-gradient(165deg, var(--c1), var(--c2));
+  color: #ffffff;
+  font-weight: 900;
+  font-size: 1.6rem;
+  box-shadow: 0 4px 0 var(--c3);
+}
+
+.mg-chip.is-big {
+  min-width: 84px;
+  height: 84px;
+  border-radius: 26px;
+  font-size: 3rem;
+  box-shadow: 0 6px 0 var(--c3);
+  animation: mg-badge 0.5s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+
+.mg-choices {
+  min-height: calc(var(--mg-card) * 1.15);
+}
+
+.mg-card,
+.mg-card-spot {
+  width: var(--mg-card);
+  height: calc(var(--mg-card) * 1.15);
+}
+
+.mg-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0;
+  border: none;
+  border-radius: 28px;
+  background: linear-gradient(165deg, var(--c1) 0%, var(--c2) 100%);
+  color: #ffffff;
+  box-shadow: inset 0 4px 0 rgba(255, 255, 255, 0.35), 0 7px 0 var(--c3), 0 14px 20px rgba(30, 40, 90, 0.25);
+  animation: mg-object-in 0.5s cubic-bezier(0.2, 1.5, 0.4, 1) calc(var(--i) * 0.08s) backwards;
+  transition: transform 0.12s ease;
+}
+
+.mg-card::before {
+  content: '';
+  position: absolute;
+  inset: 6px 10px auto 10px;
+  height: 30%;
+  border-radius: 20px 20px 50% 50%;
+  background: linear-gradient(rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0));
+  pointer-events: none;
+}
+
+.mg-card:active {
+  transform: translateY(5px);
+  box-shadow: 0 2px 0 var(--c3);
+}
+
+.mg-card.is-hint {
+  animation: mg-hint 0.9s ease-in-out infinite;
+  box-shadow: 0 0 0 6px #ffd166, 0 0 26px 8px rgba(255, 196, 61, 0.75), 0 7px 0 var(--c3);
+}
+
+.mg-card-digit {
+  position: relative;
+  font-weight: 900;
+  font-size: calc(var(--mg-card) * 0.56);
+  line-height: 1;
+  text-shadow: 0 3px 0 rgba(0, 0, 0, 0.16);
+}
+
+.mg-dots {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.mg-dots-row {
+  display: flex;
+  justify-content: center;
+  gap: 3px;
+}
+
+.mg-dots i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.12);
+}
+
+/* ---------- keyframes ---------- */
+@keyframes mg-object-in {
+  from { opacity: 0; transform: translateY(20px) scale(0.4); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes mg-hop {
+  0%, 100% { transform: translateY(0) scale(1); }
+  40% { transform: translateY(-18px) scale(1.1); }
+  70% { transform: translateY(0) scale(1.05, 0.95); }
+}
+
+@keyframes mg-badge {
+  from { transform: scale(0); }
+  to { transform: scale(1); }
+}
+
+@keyframes mg-dance {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  25% { transform: translateY(-14px) rotate(-10deg); }
+  75% { transform: translateY(-6px) rotate(10deg); }
+}
+
+@keyframes mg-ripple {
+  0% { box-shadow: 0 0 0 0 rgba(58, 139, 255, 0.3), 0 12px 24px rgba(40, 70, 140, 0.2); }
+  100% { box-shadow: 0 0 0 26px rgba(58, 139, 255, 0), 0 12px 24px rgba(40, 70, 140, 0.2); }
+}
+
+@keyframes mg-hint {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-8px) scale(1.04); }
+}
+
+@keyframes mg-wobble {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-8px) rotate(-3deg); }
+  75% { transform: translateX(8px) rotate(3deg); }
+}
+
+@keyframes mg-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.12); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mg *,
+  .mg *::before {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+.ll-lite .mg-listen-btn,
+.ll-lite .mg-question {
+  animation: none;
+}
+
+/* phones held sideways */
+@media (max-height: 520px) {
+  .mg {
+    --mg-object: clamp(36px, 10vh, 50px);
+    --mg-card: clamp(58px, 15vh, 76px);
+  }
+
+  .mg-board {
+    flex-direction: column;
+  }
+
+  .mg-field,
+  .mg-listen {
+    min-height: 0;
+  }
+
+  .mg-plate {
+    min-height: calc(var(--mg-object) * 1.6);
+    padding: 8px;
+  }
+}
+
+@media (max-width: 700px) {
+  .mg-equation {
+    flex-wrap: wrap;
+  }
+}

@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 
 import './App.css';
-import { themes } from './data/themes'; 
 import { uiText } from './data/uiText';
 import { approvedSyllables } from './data/approvedSyllables';
 
@@ -20,7 +19,7 @@ import { TeacherPanel } from './components/TeacherPanel';
 import { ListenGame, voicePhrases as listenVoicePhrases } from './components/ListenGame';
 import { AlphabetBook, voicePhrases as alphabetVoicePhrases } from './components/AlphabetBook';
 import { ColoringGame, voicePhrases as coloringVoicePhrases } from './components/ColoringGame';
-import { rememberProfile } from './lib/progress';
+import { clearChildData, rememberProfile } from './lib/progress';
 import { downloadPhrases, uniquePhrases } from './lib/voicePack';
 import { API_BASE_URL, normalizeImageUrl } from './lib/api';
 import { LETTER_NAME_MAPS } from './lib/letters';
@@ -556,7 +555,6 @@ export default function App() {
     const savedLang = localStorage.getItem('er_lang');
     return LANGUAGE_CODES.includes(savedLang) ? savedLang : 'RU';
   }); 
-  const [theme, setTheme] = useState('OCEAN'); 
   const [gameState, setGameState] = useState('MENU'); 
   const [playMode, setPlayMode] = useState('WORDS');
   const [mathMode, setMathMode] = useState('COUNT');
@@ -589,7 +587,7 @@ export default function App() {
     const savedRate = localStorage.getItem('er_speech_rate');
     return SPEECH_RATE_VALUES.includes(savedRate) ? savedRate : 'NORMAL';
   });
-  const [speechRuntimeStatus, setSpeechRuntimeStatus] = useState('IDLE');
+  const [, setSpeechRuntimeStatus] = useState('IDLE');
   const [loadError, setLoadError] = useState('');
   const [isPortrait, setIsPortrait] = useState(
     () => typeof window !== 'undefined' && window.innerWidth < window.innerHeight
@@ -841,7 +839,6 @@ export default function App() {
     localStorage.setItem(`er_chest_queue_${userKey}`, JSON.stringify(pendingChestRewards));
     localStorage.setItem(`er_chest_opened_${userKey}`, isChestOpened ? '1' : '0');
   }, [pendingChestRewards, isChestOpened, loadedProfileKey, userKey]);
-  const speechEngineStatus = 'NEURAL_AI';
   const feedbackText = {
     EN: {
       logout: 'You have been logged out.',
@@ -1347,6 +1344,8 @@ export default function App() {
   };
 
   const handleResetProgress = () => {
+    // levels, counters and lock of the new games live under the child's name too
+    clearChildData(userKey);
     setCurrentIdx(0);
     setStickersByLang(buildEmptyLangProgress());
     setSyllableStickersByLang(buildEmptyLangProgress());
@@ -1792,7 +1791,6 @@ export default function App() {
     registerFreshWin();
   };
 
-  const currentTheme = themes[theme] || themes.OCEAN;
 
   if (!isMounted || !serverData) return <div className="App-header"><h1>{uiText[lang]?.loading || 'Loading...'}</h1></div>;
 
@@ -1804,7 +1802,7 @@ export default function App() {
   }[lang] || 'Поверни телефон горизонтально';
 
   return (
-    <div className={isLiteDevice ? 'll-lite' : undefined} style={{ background: currentTheme.bg, minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', fontFamily: 'inherit' }}>
+    <div className={isLiteDevice ? 'll-lite' : undefined} style={{ background: 'linear-gradient(180deg, #8fd0ff 0%, #d7f0ff 100%)', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', fontFamily: 'inherit' }}>
       {isPortrait && isTouchLandscapeHintDevice && (
         <div className="rotate-overlay">
           <div className="rotate-phone-icon">📱</div>
@@ -1864,7 +1862,7 @@ export default function App() {
           lang={lang}
         />
       )}
-      {gameState === 'SETTINGS' && <SettingsScreen lang={lang} onClose={handleCloseOverlay} speechRate={speechRate} setSpeechRate={setSpeechRate} toggleMusic={toggleMusic} isMusicOn={isMusicOn} musicVolume={musicVolume} onMusicVolumeChange={handleMusicVolumeChange} speechEngineStatus={speechEngineStatus} speechRuntimeStatus={speechRuntimeStatus} theme={theme} setTheme={setTheme} currentUser={currentUser} handleResetProgress={handleResetProgress} handleLogout={handleLogout} />}
+      {gameState === 'SETTINGS' && <SettingsScreen lang={lang} onClose={handleCloseOverlay} speechRate={speechRate} setSpeechRate={setSpeechRate} toggleMusic={toggleMusic} isMusicOn={isMusicOn} musicVolume={musicVolume} onMusicVolumeChange={handleMusicVolumeChange} speakText={speakText} currentUser={currentUser} handleResetProgress={handleResetProgress} handleLogout={handleLogout} />}
 
       {gameState === 'MENU' && (
         <MainMenu

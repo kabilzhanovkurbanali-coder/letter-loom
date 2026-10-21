@@ -216,7 +216,8 @@
   animation: none;
 }
 
-@media (max-width: 700px) {
+/* narrow portrait screens only; a phone held sideways keeps the side-by-side page */
+@media (max-width: 700px) and (min-height: 521px) {
   .ab-page {
     flex-direction: column;
   }
@@ -230,6 +231,12 @@
 @media (max-height: 520px) {
   .ab {
     --ab-card: clamp(120px, 44vh, 170px);
+  }
+
+  .ab-board {
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
   .ab-turn {

@@ -151,11 +151,27 @@
 /* phones held sideways */
 @media (max-height: 520px) {
   .cg {
-    --cg-cell: clamp(22px, 8vh, 32px);
-    --cg-pot: clamp(46px, 14vh, 60px);
+    --cg-cell: clamp(20px, 7vh, 30px);
+    --cg-pot: clamp(42px, 12vh, 54px);
   }
 
   .cg-board {
     flex-direction: column;
+  }
+
+  /* paints stand in a column beside the picture, so nothing falls below the screen */
+  .cg .gs-main {
+    flex-direction: row;
+  }
+
+  .cg-paints {
+    flex-direction: column;
+    flex-wrap: wrap;
+    max-height: calc(100dvh - 80px);
+    padding: 10px;
+  }
+
+  .cg-pot.is-on {
+    transform: translateX(-6px) scale(1.1);
   }
 }

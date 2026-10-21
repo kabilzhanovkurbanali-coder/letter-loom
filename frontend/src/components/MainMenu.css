@@ -228,6 +228,7 @@
 
 /* ---------- welcome ---------- */
 .ll-welcome-card {
+  box-sizing: border-box;
   justify-self: center;
   width: min(560px, 100%);
   display: flex;
@@ -730,5 +731,212 @@
   .ll-icon-btn {
     width: 48px;
     height: 48px;
+  }
+}
+
+/* ---------- phones held sideways ---------- */
+/* comes last so it wins over the narrow-width rules above */
+@media (max-height: 520px) and (orientation: landscape) {
+  /* the page itself never scrolls; only the game list does */
+  .ll-menu {
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .ll-stage {
+    min-height: 0;
+  }
+
+  .ll-topbar {
+    flex-direction: row;
+    align-items: center;
+    padding: 6px 12px 0;
+  }
+
+  .ll-brand {
+    font-size: 1.3rem;
+  }
+
+  .ll-topbar-right {
+    flex-wrap: nowrap;
+    gap: 8px;
+  }
+
+  .ll-lang-btn {
+    min-width: 0;
+    min-height: 32px;
+    padding: 0 9px;
+    font-size: 0.85rem;
+  }
+
+  .ll-icon-row {
+    gap: 6px;
+  }
+
+  .ll-icon-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 14px;
+  }
+
+  .ll-icon-btn img {
+    width: 24px;
+    height: 24px;
+  }
+
+  .ll-player-chip {
+    padding: 4px 12px 4px 4px;
+    gap: 8px;
+  }
+
+  .ll-player-chip > img {
+    width: 36px;
+    height: 36px;
+  }
+
+  .ll-player-name {
+    font-size: 1rem;
+  }
+
+  .ll-stage,
+  .ll-stage.is-welcome {
+    grid-template-columns: 128px minmax(0, 1fr);
+    align-items: center;
+    gap: 10px;
+    padding: 6px 12px 8px;
+  }
+
+  .ll-guide {
+    flex-direction: column;
+    align-self: end;
+    gap: 2px;
+  }
+
+  .ll-guide .irbi {
+    width: 104px !important;
+    height: 114px !important;
+  }
+
+  .ll-bubble {
+    max-width: 128px;
+    padding: 8px 10px;
+    gap: 6px;
+    font-size: 0.78rem;
+    border-radius: 16px;
+  }
+
+  .ll-bubble::after {
+    left: 50%;
+    right: auto;
+    bottom: -8px;
+    width: 16px;
+    height: 16px;
+    transform: translateX(-50%) rotate(45deg);
+  }
+
+  .ll-bubble-sound {
+    display: none;
+  }
+
+  /* welcome: name and profiles side by side in one compact card */
+  .ll-welcome-card {
+    width: min(620px, 100%);
+    gap: 10px;
+    padding: 14px 16px;
+    border-radius: 26px;
+  }
+
+  .ll-name-form {
+    flex-direction: row;
+  }
+
+  .ll-name-input,
+  .ll-play-btn {
+    min-height: 52px;
+    font-size: 1.1rem;
+  }
+
+  .ll-profiles-title {
+    margin-bottom: 4px;
+    font-size: 0.95rem;
+  }
+
+  .ll-profiles-row {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    max-height: none;
+  }
+
+  .ll-profile {
+    flex: none;
+  }
+
+  .ll-profile-btn {
+    width: 78px;
+    padding: 6px 4px;
+    font-size: 0.85rem;
+    border-radius: 18px;
+  }
+
+  .ll-profile-btn img {
+    width: 40px;
+    height: 40px;
+  }
+
+  .ll-adult-link {
+    align-self: flex-end;
+    padding: 2px 4px;
+  }
+
+  /* chooser: smaller tiles scroll inside the space under the top bar */
+  .ll-games {
+    max-height: 100%;
+    overflow-y: auto;
+    gap: 8px;
+    padding: 2px 4px 8px;
+  }
+
+  .ll-game-section {
+    padding: 6px 10px 10px;
+    border-radius: 22px;
+  }
+
+  .ll-section-title {
+    margin-bottom: 6px;
+    font-size: 0.95rem;
+  }
+
+  .ll-game-grid,
+  .ll-tone-words .ll-game-grid,
+  .ll-tone-math .ll-game-grid,
+  .ll-tone-more .ll-game-grid {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .ll-tile {
+    min-height: 78px;
+    padding: 6px 4px;
+    gap: 2px;
+    border-radius: 18px;
+    box-shadow: 0 4px 0 var(--tile-deep), 0 8px 14px rgba(40, 60, 120, 0.2);
+  }
+
+  .ll-tile-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .ll-tile-title {
+    font-size: 0.68rem;
+  }
+
+  .ll-sheet {
+    max-height: calc(100dvh - 24px);
+    overflow-y: auto;
+    padding: 16px;
+    gap: 10px;
   }
 }

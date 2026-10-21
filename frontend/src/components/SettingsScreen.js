@@ -1,260 +1,139 @@
-import React from 'react';
-import { themes } from '../data/themes';
-import { uiText } from '../data/uiText';
+import React, { useState } from 'react';
+import { ValleyScene } from './ValleyScene';
+import { pictureUrl } from '../lib/api';
+import './SettingsScreen.css';
+
+const TEXT = {
+  EN: {
+    title: 'Settings', back: 'Back', voice: 'Irbi’s voice', slow: 'Slow', normal: 'Normal', fast: 'Fast', test: 'Listen',
+    sample: 'Hi! I am Irbi. Let’s play!', music: 'Music', on: 'On', off: 'Off', volume: 'Volume',
+    adults: 'For grown-ups', reset: 'Reset progress', resetAsk: 'Reset all progress of this child? This cannot be undone.',
+    switchKid: 'Change player', yes: 'Yes', cancel: 'Cancel', done: 'Progress cleared'
+  },
+  RU: {
+    title: 'Настройки', back: 'Назад', voice: 'Голос Ирби', slow: 'Медленно', normal: 'Обычно', fast: 'Быстро', test: 'Послушать',
+    sample: 'Привет! Я Ирби. Давай играть!', music: 'Музыка', on: 'Вкл', off: 'Выкл', volume: 'Громкость',
+    adults: 'Для взрослых', reset: 'Сбросить прогресс', resetAsk: 'Сбросить весь прогресс этого ребёнка? Это нельзя отменить.',
+    switchKid: 'Сменить игрока', yes: 'Да', cancel: 'Отмена', done: 'Прогресс сброшен'
+  },
+  KG: {
+    title: 'Орнотуулар', back: 'Артка', voice: 'Ирбинин үнү', slow: 'Жай', normal: 'Кадимки', fast: 'Тез', test: 'Угуу',
+    sample: 'Салам! Мен Ирбимин. Келчи, ойнойлу!', music: 'Музыка', on: 'Күйүк', off: 'Өчүк', volume: 'Үнү',
+    adults: 'Чоңдор үчүн', reset: 'Прогрессти тазалоо', resetAsk: 'Бул баланын бардык прогрессин тазалайсызбы? Муну кайтаруу мүмкүн эмес.',
+    switchKid: 'Оюнчуну алмаштыруу', yes: 'Ооба', cancel: 'Жокко чыгаруу', done: 'Прогресс тазаланды'
+  },
+  UZ: {
+    title: 'Sozlamalar', back: 'Orqaga', voice: 'Irbining ovozi', slow: 'Sekin', normal: 'Oddiy', fast: 'Tez', test: 'Tinglash',
+    sample: 'Salom! Men Irbiman. Kel, o‘ynaymiz!', music: 'Musiqa', on: 'Yoqilgan', off: 'O‘chiq', volume: 'Ovoz balandligi',
+    adults: 'Kattalar uchun', reset: 'Natijalarni tozalash', resetAsk: 'Bu bolaning barcha natijalari tozalansinmi? Buni qaytarib bo‘lmaydi.',
+    switchKid: 'O‘yinchini almashtirish', yes: 'Ha', cancel: 'Bekor qilish', done: 'Natijalar tozalandi'
+  }
+};
+
+const SPEEDS = [
+  { value: 'SLOW', icon: 'turtle', label: 'slow' },
+  { value: 'NORMAL', icon: 'cat', label: 'normal' },
+  { value: 'FAST', icon: 'rabbit', label: 'fast' }
+];
 
 export function SettingsScreen({
-  lang,
-  onClose,
-  speechRate,
-  setSpeechRate,
-  toggleMusic,
-  isMusicOn,
-  musicVolume,
-  onMusicVolumeChange,
-  speechEngineStatus,
-  speechRuntimeStatus,
-  theme,
-  setTheme,
-  currentUser,
-  handleResetProgress,
-  handleLogout
+  lang, onClose, speechRate, setSpeechRate, speakText,
+  toggleMusic, isMusicOn, musicVolume, onMusicVolumeChange,
+  currentUser, handleResetProgress, handleLogout
 }) {
-  const text = uiText[lang] || uiText.RU;
-  const settingsText = {
-    EN: { themeLabel: 'Background theme', resetHint: 'Reset progress', logoutHint: 'Account', accountOnly: 'Available after sign in' },
-    RU: { themeLabel: 'Фон', resetHint: 'Сброс прогресса', logoutHint: 'Аккаунт', accountOnly: 'Доступно после входа' },
-    KG: { themeLabel: 'Фон', resetHint: 'Прогрессти тазалоо', logoutHint: 'Аккаунт', accountOnly: 'Киргенден кийин жеткиликтүү' },
-    UZ: { themeLabel: 'Fon', resetHint: 'Progressni tozalash', logoutHint: 'Akkaunt', accountOnly: 'Kirgandan keyin ko`rinadi' }
-  }[lang] || { themeLabel: 'Фон', resetHint: 'Сброс прогресса', logoutHint: 'Аккаунт', accountOnly: 'Доступно после входа' };
+  const t = TEXT[lang] || TEXT.RU;
+  const [confirmReset, setConfirmReset] = useState(false);
+  const [resetDone, setResetDone] = useState(false);
 
-  const engineLabel = speechEngineStatus === 'NEURAL_AI'
-    ? (text.speechEngineRemoteAi || 'Neural AI voice')
-    : (text.speechEngineRemoteAi || 'Neural AI voice');
-  const runtimeLabel = speechRuntimeStatus === 'LOCAL_AUDIO'
-    ? text.speechRuntimeLocalAudio
-    : speechRuntimeStatus === 'REMOTE_TTS'
-      ? text.speechRuntimeRemoteTts
-      : speechRuntimeStatus === 'BROWSER_VOICE'
-        ? (text.speechRuntimeBrowserVoice || 'Browser voice fallback')
-      : speechRuntimeStatus === 'REMOTE_ERROR'
-          ? (text.speechRuntimeRemoteError || 'Remote error')
-        : speechRuntimeStatus === 'UNAVAILABLE'
-          ? text.speechRuntimeUnavailable
-          : text.speechRuntimeIdle;
+  const chooseSpeed = (value) => {
+    setSpeechRate(value);
+  };
+
+  const reset = () => {
+    handleResetProgress();
+    setConfirmReset(false);
+    setResetDone(true);
+  };
 
   return (
-    <div style={{ width: '100%', maxWidth: '900px', padding: '32px 20px', color: 'white', textAlign: 'center' }}>
-      <button onClick={onClose} style={backButtonStyle}>
-        {text.back}
-      </button>
+    <div className="st">
+      <ValleyScene />
+      <div className="st-veil" aria-hidden="true" />
 
-      <h1 style={titleStyle}>{text.settings}</h1>
+      <header className="st-top">
+        <button type="button" className="st-round" onClick={onClose} aria-label={t.back} title={t.back}>
+          <img src={pictureUrl('house')} alt="" />
+        </button>
+        <h1 className="st-title">
+          <img src={pictureUrl('gear')} alt="" />
+          {t.title}
+        </h1>
+        <span className="st-round-spacer" />
+      </header>
 
-      <div style={panelStyle}>
-        <div style={gridStyle}>
-          <div style={{ ...fieldStyle, justifyContent: 'flex-end' }}>
-            <span>{text.speechEngineLabel}</span>
-            <div style={infoBoxStyle}>{engineLabel}</div>
-            <span>{text.speechRuntimeLabel}</span>
-            <div style={infoBoxStyle}>{runtimeLabel}</div>
-          </div>
-
-          <label style={fieldStyle}>
-            <span>{text.speedLabel}</span>
-            <select value={speechRate} onChange={(e) => setSpeechRate(e.target.value)} style={selectStyle}>
-              <option value="SLOW">{text.speedSlow}</option>
-              <option value="NORMAL">{text.speedNormal}</option>
-              <option value="FAST">{text.speedFast}</option>
-            </select>
-          </label>
-
-          <div style={{ display: 'flex', alignItems: 'end' }}>
-            <button onClick={toggleMusic} style={toggleButtonStyle}>
-              🎵 {isMusicOn ? text.musicOn : text.musicOff}
-            </button>
-          </div>
-
-          <label style={fieldStyle}>
-            <span>{text.volumeLabel}: {musicVolume}%</span>
-            <input type="range" min="0" max="100" value={musicVolume} onChange={(e) => onMusicVolumeChange(Number(e.target.value))} />
-          </label>
-        </div>
-
-        <div style={dividerStyle} />
-
-        <div style={sectionStyle}>
-          <div style={sectionTitleStyle}>{settingsText.themeLabel}</div>
-          <div style={themeRowStyle}>
-            {Object.keys(themes).map((themeKey) => (
+      <main className="st-main">
+        <section className="st-card">
+          <h2>{t.voice}</h2>
+          <div className="st-speeds" role="radiogroup" aria-label={t.voice}>
+            {SPEEDS.map((speed) => (
               <button
-                key={themeKey}
+                key={speed.value}
                 type="button"
-                aria-label={themes[themeKey].name}
-                onClick={() => setTheme(themeKey)}
-                style={{
-                  ...themeDotStyle,
-                  background: themes[themeKey].bg,
-                  ...(theme === themeKey ? activeThemeDotStyle : null)
-                }}
-              />
+                role="radio"
+                aria-checked={speechRate === speed.value}
+                className={`st-speed ${speechRate === speed.value ? 'is-on' : ''}`}
+                onClick={() => chooseSpeed(speed.value)}
+              >
+                <img src={pictureUrl(speed.icon)} alt="" />
+                <span>{t[speed.label]}</span>
+              </button>
             ))}
           </div>
-        </div>
+          <button type="button" className="st-btn st-btn-listen" onClick={() => speakText?.(t.sample, { interrupt: true })}>
+            <img src={pictureUrl('speaker')} alt="" />
+            {t.test}
+          </button>
+        </section>
 
-        <div style={sectionStyle}>
-          <div style={sectionTitleStyle}>{settingsText.resetHint}</div>
-          {currentUser ? (
-            <button type="button" onClick={handleResetProgress} style={resetButtonStyle}>
-              {text.reset}
-            </button>
-          ) : (
-            <div style={mutedInfoStyle}>{settingsText.accountOnly}</div>
-          )}
-        </div>
+        <section className="st-card">
+          <h2>{t.music}</h2>
+          <button type="button" className={`st-toggle ${isMusicOn ? 'is-on' : ''}`} onClick={toggleMusic} aria-pressed={isMusicOn}>
+            <img src={pictureUrl('music')} alt="" />
+            <span className="st-switch" aria-hidden="true" />
+            <span>{isMusicOn ? t.on : t.off}</span>
+          </button>
+          <label className="st-volume">
+            <span>{t.volume}: {musicVolume}%</span>
+            <input type="range" min="0" max="100" value={musicVolume} onChange={(event) => onMusicVolumeChange(Number(event.target.value))} />
+          </label>
+        </section>
 
-        {currentUser ? (
-          <div style={sectionStyle}>
-            <div style={sectionTitleStyle}>{settingsText.logoutHint}</div>
-            <button type="button" onClick={handleLogout} style={logoutButtonStyle}>
-              🔐 {text.logout}
-            </button>
-          </div>
+        {currentUser && !currentUser.isAdmin ? (
+          <section className="st-card st-card-adult">
+            <h2>{t.adults}</h2>
+            <div className="st-adult-actions">
+              <button type="button" className="st-btn st-btn-ghost" onClick={() => setConfirmReset(true)}>{t.reset}</button>
+              <button type="button" className="st-btn st-btn-ghost" onClick={handleLogout}>
+                <img src={pictureUrl('door_exit')} alt="" />
+                {t.switchKid}
+              </button>
+            </div>
+            {resetDone ? <p className="st-note">{t.done}</p> : null}
+          </section>
         ) : null}
-      </div>
+      </main>
+
+      {confirmReset ? (
+        <div className="st-backdrop" onClick={() => setConfirmReset(false)}>
+          <div className="st-dialog" role="alertdialog" onClick={(event) => event.stopPropagation()}>
+            <p>{t.resetAsk}</p>
+            <div className="st-dialog-actions">
+              <button type="button" className="st-btn st-btn-ghost" onClick={() => setConfirmReset(false)}>{t.cancel}</button>
+              <button type="button" className="st-btn st-btn-danger" onClick={reset}>{t.yes}</button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
-
-const backButtonStyle = {
-  background: 'rgba(255,255,255,0.25)',
-  color: 'white',
-  border: 'none',
-  padding: '12px 24px',
-  borderRadius: '16px',
-  cursor: 'pointer',
-  fontWeight: 'bold',
-  marginBottom: '18px'
-};
-
-const titleStyle = {
-  marginTop: 0,
-  fontSize: '3rem',
-  color: '#ffcc00',
-  textShadow: '0 4px 12px rgba(0,0,0,0.35)'
-};
-
-const panelStyle = {
-  background: 'rgba(255,255,255,0.14)',
-  border: '2px solid rgba(255,255,255,0.22)',
-  borderRadius: '28px',
-  padding: '24px',
-  color: 'white',
-  boxShadow: '0 18px 36px rgba(0,0,0,0.18)'
-};
-
-const gridStyle = {
-  display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-  gap: '16px'
-};
-
-const fieldStyle = {
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '8px',
-  textAlign: 'left'
-};
-
-const selectStyle = {
-  padding: '12px',
-  borderRadius: '14px',
-  border: 'none'
-};
-
-const infoBoxStyle = {
-  minHeight: '46px',
-  display: 'flex',
-  alignItems: 'center',
-  padding: '12px 14px',
-  borderRadius: '14px',
-  background: 'rgba(255,255,255,0.14)',
-  border: '1px solid rgba(255,255,255,0.18)'
-};
-
-const toggleButtonStyle = {
-  width: '100%',
-  padding: '14px 18px',
-  borderRadius: '16px',
-  border: '3px solid white',
-  background: 'rgba(255,255,255,0.16)',
-  color: 'white',
-  fontWeight: 'bold',
-  cursor: 'pointer',
-  fontSize: '1rem'
-};
-
-const dividerStyle = {
-  height: '1px',
-  margin: '24px 0',
-  background: 'rgba(255,255,255,0.18)'
-};
-
-const sectionStyle = {
-  textAlign: 'left'
-};
-
-const sectionTitleStyle = {
-  marginBottom: '14px',
-  fontSize: '1.05rem',
-  fontWeight: 'bold'
-};
-
-const themeRowStyle = {
-  display: 'flex',
-  flexWrap: 'wrap',
-  gap: '14px'
-};
-
-const themeDotStyle = {
-  width: '62px',
-  height: '62px',
-  borderRadius: '999px',
-  border: '5px solid rgba(255,255,255,0.92)',
-  boxShadow: '0 8px 18px rgba(0, 0, 0, 0.16)',
-  cursor: 'pointer'
-};
-
-const activeThemeDotStyle = {
-  borderColor: '#ffc700',
-  boxShadow: '0 0 0 4px rgba(255, 199, 0, 0.25), 0 8px 18px rgba(0, 0, 0, 0.16)'
-};
-
-const resetButtonStyle = {
-  padding: '14px 22px',
-  borderRadius: '18px',
-  border: 'none',
-  cursor: 'pointer',
-  fontWeight: 'bold',
-  color: 'white',
-  background: 'linear-gradient(180deg, #3d556f 0%, #334b64 100%)',
-  boxShadow: '0 8px 0 #22313f'
-};
-
-const logoutButtonStyle = {
-  padding: '14px 22px',
-  borderRadius: '18px',
-  border: 'none',
-  cursor: 'pointer',
-  fontWeight: 'bold',
-  color: 'white',
-  background: 'linear-gradient(180deg, #3291f8 0%, #2784eb 100%)',
-  boxShadow: '0 8px 0 #145fbd'
-};
-
-const mutedInfoStyle = {
-  display: 'inline-flex',
-  padding: '12px 16px',
-  borderRadius: '16px',
-  background: 'rgba(255,255,255,0.12)',
-  color: 'rgba(255,255,255,0.78)'
-};

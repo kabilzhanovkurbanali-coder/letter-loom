@@ -362,8 +362,13 @@
 
 /* phones held sideways */
 @media (max-height: 520px) {
+  /* two rows of cards always fit the height of a phone held sideways */
+  .mm-grid-12 {
+    grid-template-columns: repeat(6, var(--mm-card));
+  }
+
   .mm {
-    --mm-card: clamp(50px, 13vh, 68px);
+    --mm-card: clamp(56px, 24vh, 96px);
     --mm-item: clamp(46px, 13vh, 64px);
     --mm-pad: clamp(64px, 18vh, 88px);
   }

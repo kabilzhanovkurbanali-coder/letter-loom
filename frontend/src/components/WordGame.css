@@ -419,13 +419,14 @@
   75% { transform: translateX(-70px) translateY(-10px) rotate(-8deg) scaleX(-1); }
 }
 
+/* the 3D vehicles face left, so they drive off to the left and come back from the right */
 @keyframes wg-alive-drive {
   0% { transform: translateX(0); opacity: 1; }
-  40% { transform: translateX(65vw) scaleX(1.1); opacity: 1; }
-  41% { transform: translateX(65vw); opacity: 0; }
-  42% { transform: translateX(-65vw); opacity: 0; }
-  43% { transform: translateX(-65vw); opacity: 1; }
-  85% { transform: translateX(10px) scaleX(0.94); }
+  40% { transform: translateX(-65vw) scaleX(1.1); opacity: 1; }
+  41% { transform: translateX(-65vw); opacity: 0; }
+  42% { transform: translateX(65vw); opacity: 0; }
+  43% { transform: translateX(65vw); opacity: 1; }
+  85% { transform: translateX(-10px) scaleX(0.94); }
   100% { transform: translateX(0) scaleX(1); opacity: 1; }
 }
 

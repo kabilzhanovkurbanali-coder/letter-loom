@@ -5,6 +5,7 @@ import {
   readStats, rememberProfile, setLevelLocked, todayKey, writeActivityLevel, writeProfiles
 } from '../lib/progress';
 import { MENU_TEXT, avatarForName } from './MainMenu';
+import { addDemoKids, demoProfiles, removeDemoKids } from '../lib/demo';
 import './TeacherPanel.css';
 
 const TEXT = {
@@ -19,6 +20,7 @@ const TEXT = {
     confirmReset: 'Reset all progress? This cannot be undone.', confirmRemove: 'Remove from the list and delete progress on this device?',
     yes: 'Yes', cancel: 'Cancel',
     privacy: 'All data stays on this device. The microphone and camera record nothing.',
+    demoTitle: 'For a demo', demoHint: 'Adds four children with sample progress, to show how teacher mode works.', demoAdd: 'Add demo children', demoRemove: 'Remove demo children', demoBadge: 'demo',
     offlineTitle: 'Offline use', offlineHint: 'Downloads the voice for every task in {lang} and all the pictures. For another language, switch the language and repeat.', offlineGo: 'Download', offlineProgress: '{done} of {total}',
     offlineDone: 'Done! The voice is saved.', offlineFailed: 'Not downloaded: {n}. Check the internet and try again.', offlineNoSw: 'To play without internet on the tablet itself, open the game over https.', langName: 'English',
     modules: { letters: 'Letters and words', speech: 'Speech', math: 'Math', memory: 'Memory and art', logic: 'Logic' }
@@ -34,6 +36,7 @@ const TEXT = {
     confirmReset: 'Сбросить весь прогресс? Это нельзя отменить.', confirmRemove: 'Убрать из списка и удалить прогресс на этом устройстве?',
     yes: 'Да', cancel: 'Отмена',
     privacy: 'Все данные хранятся только на этом устройстве. Микрофон и камера ничего не записывают.',
+    demoTitle: 'Для показа', demoHint: 'Добавит четырёх детей с примерным прогрессом, чтобы показать режим учителя.', demoAdd: 'Добавить демо-детей', demoRemove: 'Убрать демо-детей', demoBadge: 'демо',
     offlineTitle: 'Работа без интернета', offlineHint: 'Скачает голос всех заданий ({lang}) и все картинки. Для другого языка переключите язык и повторите.', offlineGo: 'Скачать', offlineProgress: '{done} из {total}',
     offlineDone: 'Готово! Голос сохранён.', offlineFailed: 'Не скачалось: {n}. Проверьте интернет и нажмите ещё раз.', offlineNoSw: 'Чтобы игра работала без интернета прямо на планшете, откройте её по https.', langName: 'русский',
     modules: { letters: 'Буквы и слова', speech: 'Речь и произношение', math: 'Математика', memory: 'Память и творчество', logic: 'Логика' }
@@ -49,6 +52,7 @@ const TEXT = {
     confirmReset: 'Бардык прогрессти тазалайсызбы? Муну кайтаруу мүмкүн эмес.', confirmRemove: 'Тизмеден алып, ушул түзмөктөгү прогрессти өчүрөсүзбү?',
     yes: 'Ооба', cancel: 'Жокко чыгаруу',
     privacy: 'Бардык маалымат ушул түзмөктө гана сакталат. Микрофон да, камера да эч нерсе жазбайт.',
+    demoTitle: 'Көрсөтүү үчүн', demoHint: 'Мугалим режимин көрсөтүү үчүн үлгү прогресси бар төрт баланы кошот.', demoAdd: 'Демо-балдарды кошуу', demoRemove: 'Демо-балдарды алып салуу', demoBadge: 'демо',
     offlineTitle: 'Интернетсиз иштөө', offlineHint: 'Бардык тапшырмалардын үнүн ({lang}) жана бардык сүрөттөрдү жүктөйт. Башка тил үчүн тилди алмаштырып, кайталаңыз.', offlineGo: 'Жүктөө', offlineProgress: '{total} ичинен {done}',
     offlineDone: 'Даяр! Үн сакталды.', offlineFailed: 'Жүктөлгөн жок: {n}. Интернетти текшерип, кайра басыңыз.', offlineNoSw: 'Оюн планшетте интернетсиз иштеши үчүн аны https аркылуу ачыңыз.', langName: 'кыргызча',
     modules: { letters: 'Тамгалар жана сөздөр', speech: 'Сүйлөө', math: 'Математика', memory: 'Эс тутум жана чыгармачылык', logic: 'Логика' }
@@ -64,6 +68,7 @@ const TEXT = {
     confirmReset: 'Barcha natijalar tozalansinmi? Buni qaytarib bo‘lmaydi.', confirmRemove: 'Ro‘yxatdan olib, shu qurilmadagi natijalarni o‘chirasizmi?',
     yes: 'Ha', cancel: 'Bekor qilish',
     privacy: 'Barcha ma’lumotlar faqat shu qurilmada saqlanadi. Mikrofon ham, kamera ham hech narsa yozib olmaydi.',
+    demoTitle: 'Namoyish uchun', demoHint: 'O‘qituvchi rejimini ko‘rsatish uchun namunaviy natijali to‘rt bolani qo‘shadi.', demoAdd: 'Demo bolalarni qo‘shish', demoRemove: 'Demo bolalarni olib tashlash', demoBadge: 'demo',
     offlineTitle: 'Internetsiz ishlash', offlineHint: 'Barcha topshiriqlar ovozini ({lang}) va barcha rasmlarni yuklab oladi. Boshqa til uchun tilni almashtirib, qaytaring.', offlineGo: 'Yuklab olish', offlineProgress: '{total} tadan {done}',
     offlineDone: 'Tayyor! Ovoz saqlandi.', offlineFailed: 'Yuklanmadi: {n}. Internetni tekshirib, qayta bosing.', offlineNoSw: 'O‘yin planshetda internetsiz ishlashi uchun uni https orqali oching.', langName: 'o‘zbekcha',
     modules: { letters: 'Harflar va so‘zlar', speech: 'Nutq va talaffuz', math: 'Matematika', memory: 'Xotira va ijod', logic: 'Mantiq' }
@@ -106,6 +111,23 @@ export function TeacherPanel({ lang, onClose, onPlayAs, onPrepareOffline }) {
   // bumped after every change so derived numbers are re-read from storage
   const [version, setVersion] = useState(0);
   const [offline, setOffline] = useState(null);
+  const demoNames = useMemo(() => demoProfiles(), [profiles]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const addDemo = () => {
+    const next = addDemoKids(lang);
+    setProfiles(next);
+    if (!selected) setSelected(next[0] || null);
+    else setSelected(demoProfiles()[0] || selected);
+    setVersion((value) => value + 1);
+  };
+
+  const removeDemo = () => {
+    const demo = demoProfiles();
+    const next = removeDemoKids();
+    setProfiles(next);
+    if (demo.includes(selected)) setSelected(next[0] || null);
+    setVersion((value) => value + 1);
+  };
   const hasOfflineWorker = typeof navigator !== 'undefined' && Boolean(navigator.serviceWorker?.controller);
 
   const prepareOffline = async () => {
@@ -195,6 +217,7 @@ export function TeacherPanel({ lang, onClose, onPlayAs, onPrepareOffline }) {
                   <button type="button" className={`tp-kid ${name === selected ? 'is-active' : ''}`} onClick={() => setSelected(name)}>
                     <img src={pictureUrl(avatarForName(name))} alt="" />
                     <span className="tp-kid-name">{name}</span>
+                    {demoNames.includes(name) ? <span className="tp-kid-demo">{t.demoBadge}</span> : null}
                     <span className="tp-kid-count">{taskCounts[name] || 0}</span>
                   </button>
                 </li>
@@ -221,6 +244,15 @@ export function TeacherPanel({ lang, onClose, onPlayAs, onPrepareOffline }) {
               {!hasOfflineWorker ? <p className="tp-offline-note">{t.offlineNoSw}</p> : null}
             </section>
           ) : null}
+          <section className="tp-offline tp-demo">
+            <h3>{t.demoTitle}</h3>
+            <p>{t.demoHint}</p>
+            {demoNames.length ? (
+              <button type="button" className="tp-btn tp-btn-ghost" onClick={removeDemo}>{t.demoRemove}</button>
+            ) : (
+              <button type="button" className="tp-btn tp-btn-ghost" onClick={addDemo}>{t.demoAdd}</button>
+            )}
+          </section>
           <p className="tp-privacy">
             <img src={pictureUrl('lock')} alt="" />
             {t.privacy}

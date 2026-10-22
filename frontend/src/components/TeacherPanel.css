@@ -118,6 +118,7 @@
   flex-direction: column;
   gap: 12px;
   min-height: 0;
+  overflow-y: auto;
   padding: 18px;
   background: var(--tp-card);
   border-right: 1px solid var(--tp-line);
@@ -162,13 +163,12 @@
   font-weight: 700;
 }
 
+/* the whole column scrolls, so every child's name stays visible above the tools */
 .tp-kids {
-  flex: 1;
-  min-height: 0;
+  flex: none;
   margin: 0;
   padding: 0;
   list-style: none;
-  overflow-y: auto;
 }
 
 .tp-kid {
@@ -206,6 +206,15 @@
   white-space: nowrap;
   font-weight: 800;
   font-size: 1.05rem;
+}
+
+.tp-kid-demo {
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: #fff4e0;
+  color: #c77a0a;
+  font-size: 0.72rem;
+  font-weight: 800;
 }
 
 .tp-kid-count {

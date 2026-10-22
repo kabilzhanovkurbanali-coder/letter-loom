@@ -81,4 +81,22 @@ describe('TeacherPanel', () => {
     fireEvent.click(screen.getByText('Yes'));
     expect(readProfiles()).toEqual([]);
   });
+
+  test('demo children fill the dashboard and leave real children alone', () => {
+    rememberProfile('Малика');
+    recordTask('Малика', 'math:COUNT', true);
+    render(<TeacherPanel lang="RU" onClose={jest.fn()} onPlayAs={jest.fn()} />);
+    fireEvent.click(screen.getByText('Добавить демо-детей'));
+    // the real Malika keeps her name, so only three sample children are added
+    expect(readProfiles()).toEqual(['Малика', 'Азиз', 'Айбек', 'Мадина']);
+    expect(readStats('Малика').activities).toEqual({ 'math:COUNT': expect.objectContaining({ tasks: 1 }) });
+    expect(Object.keys(readStats('Азиз').activities).length).toBeGreaterThan(5);
+    expect(document.querySelectorAll('.tp-kid-demo')).toHaveLength(3);
+    expect(document.querySelector('.tp-flag')).not.toBeNull();
+
+    fireEvent.click(screen.getByText('Убрать демо-детей'));
+    expect(readProfiles()).toEqual(['Малика']);
+    expect(readStats('Азиз').activities).toEqual({});
+    expect(readStats('Малика').activities['math:COUNT'].tasks).toBe(1);
+  });
 });

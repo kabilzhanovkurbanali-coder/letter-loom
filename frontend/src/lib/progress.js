@@ -125,6 +125,8 @@ export const readStats = (userKey) => {
   return emptyStats();
 };
 
+export const writeStats = (userKey, stats) => safeSet(statsKey(userKey), JSON.stringify(stats));
+
 const updateStats = (userKey, activityId, change) => {
   if (!userKey || !activityId) return;
   const stats = readStats(userKey);

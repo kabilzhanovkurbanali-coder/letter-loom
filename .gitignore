@@ -6,3 +6,5 @@ backend/server.log
 __pycache__/
 .DS_Store
 backend/certs/
+# review sheets for native speakers (rebuilt from the code, see tools/translations)
+/Проверка текстов/

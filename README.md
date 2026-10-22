@@ -54,3 +54,4 @@
 - Клиент: `frontend` (React). Игры лежат в `src/components/*Game.js`, общий каркас в `GameShell.js`, режим учителя в `TeacherPanel.js`.
 - Офлайн: `frontend/public/service-worker.js`. Голосовой пакет собирают функции `voicePhrases()` каждой игры (`src/lib/voicePack.js`).
 - Тесты: `cd frontend && CI=true npx react-scripts test --watchAll=false`.
+- Проверка переводов: `node tools/translations/strings.js extract > texts.json` и `python3 tools/translations/sheet.py build texts.json "Проверка текстов"` создают таблицы для носителей языка (нужны `openpyxl` и `pillow`). Заполненную таблицу читает `sheet.py read файл.xlsx corrections.json`, а `strings.js apply corrections.json` вносит правки в код.

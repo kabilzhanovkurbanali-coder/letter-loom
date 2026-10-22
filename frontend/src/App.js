@@ -4,14 +4,13 @@ import './App.css';
 import { uiText } from './data/uiText';
 import { approvedSyllables } from './data/approvedSyllables';
 
-import { StickerAlbum } from './components/StickerAlbum';
 import { AdminPanel } from './components/AdminPanel';
-import { Achievements } from './components/Achievements';
 import { MainMenu, menuVoicePhrases } from './components/MainMenu';
 import { WordGame, voicePhrases as wordVoicePhrases } from './components/WordGame';
 import { MathGame, voicePhrases as mathVoicePhrases } from './components/MathGame';
 import { SettingsScreen } from './components/SettingsScreen';
-import { RewardChestModal } from './components/RewardChestModal';
+import { AlbumScreen, albumVoicePhrases } from './components/AlbumScreen';
+import { AwardToast, GiftModal, awardPhrase, giftVoicePhrases } from './components/GiftModal';
 import { MemoryGame, voicePhrases as memoryVoicePhrases } from './components/MemoryGame';
 import { LogicGame, voicePhrases as logicVoicePhrases } from './components/LogicGame';
 import { SpeakGame, voicePhrases as speakVoicePhrases } from './components/SpeakGame';
@@ -19,7 +18,8 @@ import { TeacherPanel } from './components/TeacherPanel';
 import { ListenGame, voicePhrases as listenVoicePhrases } from './components/ListenGame';
 import { AlphabetBook, voicePhrases as alphabetVoicePhrases } from './components/AlphabetBook';
 import { ColoringGame, voicePhrases as coloringVoicePhrases } from './components/ColoringGame';
-import { clearChildData, rememberProfile } from './lib/progress';
+import { clearChildData, readStats, rememberProfile } from './lib/progress';
+import { GIFT_EVERY, computeAwards, isFriendId, nextFriendId, readSeenAwards, writeSeenAwards } from './lib/rewards';
 import { downloadPhrases, uniquePhrases } from './lib/voicePack';
 import { API_BASE_URL, normalizeImageUrl } from './lib/api';
 import { LETTER_NAME_MAPS } from './lib/letters';
@@ -290,243 +290,6 @@ const LANGUAGE_CODES = ['EN', 'RU', 'KG', 'UZ'];
 const LISTEN_STATES = { SYLLABLE_CLAP: 'CLAP', RHYME_TIME: 'RHYME', SOUND_QUIZ: 'GUESS', FIRST_SOUND: 'FIRST' };
 const buildLevelStorageKey = (userKey, lang, playMode) => `er_level_${userKey}_${lang}_${playMode}`;
 const buildEmptyLangProgress = () => ({ EN: [], RU: [], KG: [], UZ: [] });
-const RARITY_ORDER = ['COMMON', 'RARE', 'SECRET', 'SEASONAL'];
-const RARITY_COLORS = {
-  COMMON: '#6fd08c',
-  RARE: '#4ca6ff',
-  SECRET: '#ffb347',
-  SEASONAL: '#ff6f91'
-};
-const SEASONAL_EVENTS = {
-  SPRING: {
-    key: 'SPRING',
-    titles: { EN: 'Spring Parade', RU: 'Весенний парад', KG: 'Жаз майрамы', UZ: 'Bahor bayrami' },
-    subtitles: {
-      EN: 'Bloom event with soft pastel exclusives.',
-      RU: 'Весеннее событие с эксклюзивными наградами.',
-      KG: 'Жазгы өзгөчө белектер ачылды.',
-      UZ: 'Bahorgi maxsus sovg‘alar ochildi.'
-    }
-  },
-  SUMMER: {
-    key: 'SUMMER',
-    titles: { EN: 'Sun Quest', RU: 'Солнечный поход', KG: 'Күн жортуулу', UZ: 'Quyosh sarguzashti' },
-    subtitles: {
-      EN: 'Bright summer collection is active.',
-      RU: 'Летняя яркая коллекция уже в игре.',
-      KG: 'Жайкы жаркын коллекция активдүү.',
-      UZ: 'Yozgi yorqin kolleksiya faol.'
-    }
-  },
-  AUTUMN: {
-    key: 'AUTUMN',
-    titles: { EN: 'Leaf Festival', RU: 'Фестиваль листьев', KG: 'Жалбырак майрамы', UZ: 'Barglar festivali' },
-    subtitles: {
-      EN: 'Golden autumn rewards are waiting.',
-      RU: 'Осенние золотые награды уже ждут.',
-      KG: 'Күзгү алтын белектер күтүп турат.',
-      UZ: 'Kuzgi oltin mukofotlar kutmoqda.'
-    }
-  },
-  WINTER: {
-    key: 'WINTER',
-    titles: { EN: 'Snow Spark', RU: 'Снежная искра', KG: 'Кар учкуну', UZ: 'Qor uchquni' },
-    subtitles: {
-      EN: 'Winter exclusives bring frosty magic.',
-      RU: 'Зимние эксклюзивы приносят волшебство.',
-      KG: 'Кышкы эксклюзивдер сыйкыр алып келет.',
-      UZ: 'Qishki eksklyuzivlar sehr olib keladi.'
-    }
-  }
-};
-const CHEST_REWARD_POOL = [
-  {
-    id: 'spark_trail',
-    rarity: 'COMMON',
-    icon: '✨',
-    titles: { EN: 'Spark Trail', RU: 'Искристый след', KG: 'Жаркылдаган из', UZ: 'Uchqun izi' },
-    descs: {
-      EN: 'A cheerful sparkle follows every victory.',
-      RU: 'Теперь каждую победу сопровождает искристое настроение.',
-      KG: 'Ар бир жеңиш жаркыраган маанай менен коштолот.',
-      UZ: 'Har bir g‘alabaga quvnoq uchqun hamroh bo‘ladi.'
-    }
-  },
-  {
-    id: 'story_portal',
-    rarity: 'RARE',
-    icon: '🚪',
-    titles: { EN: 'Story Portal', RU: 'Портал историй', KG: 'Жомок дарбазасы', UZ: 'Hikoya portali' },
-    descs: {
-      EN: 'Unlocks a rare collectible from the imagination set.',
-      RU: 'Открывает редкую награду из коллекции воображения.',
-      KG: 'Кыял дүйнөсүнөн сейрек белек ачылды.',
-      UZ: 'Tasavvur to‘plamidan noyob sovg‘a ochildi.'
-    }
-  },
-  {
-    id: 'golden_letter',
-    rarity: 'SECRET',
-    icon: '🌟',
-    titles: { EN: 'Golden Letter', RU: 'Золотая буква', KG: 'Алтын тамга', UZ: 'Oltin harf' },
-    descs: {
-      EN: 'A hidden premium badge for steady learners.',
-      RU: 'Секретная награда для тех, кто идёт без остановки.',
-      KG: 'Тынымсыз үйрөнгөндөр үчүн жашыруун белек.',
-      UZ: 'To‘xtamasdan o‘rganuvchilar uchun yashirin sovg‘a.'
-    }
-  },
-  {
-    id: 'family_duet',
-    rarity: 'COMMON',
-    icon: '🎤',
-    titles: { EN: 'Family Duet', RU: 'Семейный дуэт', KG: 'Үй-бүлөлүк дуэт', UZ: 'Oilaviy duet' },
-    descs: {
-      EN: 'A warm reward for playing together.',
-      RU: 'Тёплая награда за совместную игру.',
-      KG: 'Бирге ойногондор үчүн жылуу белек.',
-      UZ: 'Birgalikda o‘ynash uchun iliq sovg‘a.'
-    }
-  },
-  {
-    id: 'starlight_confetti',
-    rarity: 'RARE',
-    icon: '🎆',
-    titles: { EN: 'Starlight Confetti', RU: 'Звёздный салют', KG: 'Жылдыз салюту', UZ: 'Yulduzli shou' },
-    descs: {
-      EN: 'A celebration reward for confident streaks.',
-      RU: 'Праздничная награда за уверенные серии побед.',
-      KG: 'Жеңиш сериялары үчүн майрамдык белек.',
-      UZ: 'G‘alaba seriyalari uchun bayramona sovg‘a.'
-    }
-  },
-  {
-    id: 'spring_garden',
-    rarity: 'SEASONAL',
-    season: 'SPRING',
-    icon: '🌷',
-    titles: { EN: 'Spring Garden', RU: 'Весенний сад', KG: 'Жаз гүлзары', UZ: 'Bahor bog‘i' },
-    descs: {
-      EN: 'A spring-only collectible full of bloom.',
-      RU: 'Сезонный весенний эксклюзив с цветочным настроением.',
-      KG: 'Жазга гана таандык гүлдүү белек.',
-      UZ: 'Faqat bahor uchun maxsus gul sovg‘asi.'
-    }
-  },
-  {
-    id: 'summer_sun',
-    rarity: 'SEASONAL',
-    season: 'SUMMER',
-    icon: '☀️',
-    titles: { EN: 'Sun Crown', RU: 'Солнечная корона', KG: 'Күн таажысы', UZ: 'Quyosh toj' },
-    descs: {
-      EN: 'A summer-exclusive badge with sunny energy.',
-      RU: 'Летняя эксклюзивная награда с солнечным сиянием.',
-      KG: 'Жайга тиешелүү күн нуру белеги.',
-      UZ: 'Yozgi quyoshli eksklyuziv nishon.'
-    }
-  },
-  {
-    id: 'autumn_leaf',
-    rarity: 'SEASONAL',
-    season: 'AUTUMN',
-    icon: '🍁',
-    titles: { EN: 'Leaf Treasure', RU: 'Сокровище листьев', KG: 'Жалбырак белеги', UZ: 'Barg xazinasi' },
-    descs: {
-      EN: 'A cozy autumn-exclusive collectible.',
-      RU: 'Уютный осенний эксклюзив для коллекции.',
-      KG: 'Күзгө ылайык жылуу эксклюзив.',
-      UZ: 'Kuz uchun shinam maxsus kolleksiya.'
-    }
-  },
-  {
-    id: 'winter_crystal',
-    rarity: 'SEASONAL',
-    season: 'WINTER',
-    icon: '❄️',
-    titles: { EN: 'Crystal Snow', RU: 'Хрустальный снег', KG: 'Хрустал кар', UZ: 'Billur qor' },
-    descs: {
-      EN: 'A winter-only collectible with frosty shine.',
-      RU: 'Зимний эксклюзив с холодным сиянием.',
-      KG: 'Кышкы муздак жаркыроо белеги.',
-      UZ: 'Qishki muzdek yaltiragan sovg‘a.'
-    }
-  }
-];
-
-const hashString = (value) =>
-  String(value || '').split('').reduce((acc, char) => ((acc * 31) + char.charCodeAt(0)) % 1000003, 7);
-
-const getSeasonKey = (date = new Date()) => {
-  const month = date.getMonth();
-  if (month <= 1 || month === 11) return 'WINTER';
-  if (month <= 4) return 'SPRING';
-  if (month <= 7) return 'SUMMER';
-  return 'AUTUMN';
-};
-
-const getSeasonEvent = (lang, date = new Date()) => {
-  const seasonKey = getSeasonKey(date);
-  const season = SEASONAL_EVENTS[seasonKey];
-  return {
-    key: season.key,
-    title: season.titles[lang] || season.titles.RU,
-    subtitle: season.subtitles[lang] || season.subtitles.RU
-  };
-};
-
-const decorateReward = (reward, lang) => ({
-  ...reward,
-  title: reward.titles[lang] || reward.titles.RU,
-  desc: reward.descs[lang] || reward.descs.RU,
-  rarityColor: RARITY_COLORS[reward.rarity] || '#ffffff'
-});
-
-const pickRandomFrom = (items) => items[Math.floor(Math.random() * items.length)];
-
-const pickChestReward = (ownedRewardIds, seasonKey, lang) => {
-  const owned = new Set(ownedRewardIds);
-  const availableSeasonal = CHEST_REWARD_POOL.filter((reward) => reward.season === seasonKey && !owned.has(reward.id));
-  if (availableSeasonal.length && Math.random() < 0.45) {
-    return decorateReward(pickRandomFrom(availableSeasonal), lang);
-  }
-
-  const nonSeasonal = CHEST_REWARD_POOL.filter((reward) => !reward.season && !owned.has(reward.id));
-  if (nonSeasonal.length) {
-    const weightedPool = nonSeasonal.flatMap((reward) => {
-      const copies = reward.rarity === 'COMMON' ? 4 : reward.rarity === 'RARE' ? 3 : 2;
-      return Array.from({ length: copies }, () => reward);
-    });
-    return decorateReward(pickRandomFrom(weightedPool), lang);
-  }
-
-  const seasonFallback = CHEST_REWARD_POOL.filter((reward) => reward.season === seasonKey);
-  const anyReward = seasonFallback.length ? seasonFallback : CHEST_REWARD_POOL;
-  return decorateReward(pickRandomFrom(anyReward), lang);
-};
-
-const getLevelRarity = (item, languageCode, kind, seasonKey) => {
-  const signature = `${languageCode}-${kind}-${item?.id || item?.text || ''}`;
-  const hash = hashString(signature);
-  if (seasonKey && hash % 11 === 0) return 'SEASONAL';
-  if (hash % 7 === 0) return 'SECRET';
-  if (hash % 3 === 0) return 'RARE';
-  return 'COMMON';
-};
-
-const decorateCollection = (items, languageCode, kind, seasonKey) =>
-  (items || []).map((item, index) => {
-    const rarity = getLevelRarity(item, languageCode, kind, seasonKey);
-    return {
-      ...item,
-      rarity,
-      rarityOrder: RARITY_ORDER.indexOf(rarity),
-      rarityColor: RARITY_COLORS[rarity] || '#ffffff',
-      seasonalExclusive: rarity === 'SEASONAL',
-      promoSeed: hashString(`${languageCode}-${kind}-${item?.id || index}`)
-    };
-  });
-
 const normalizeLangProgress = (rawValue, fallbackLang) => {
   const empty = buildEmptyLangProgress();
   if (!rawValue) return empty;
@@ -566,14 +329,13 @@ export default function App() {
   const [currentIdx, setCurrentIdx] = useState(0);
   const [stickersByLang, setStickersByLang] = useState(buildEmptyLangProgress);
   const [syllableStickersByLang, setSyllableStickersByLang] = useState(buildEmptyLangProgress);
-  const [achievements, setAchievements] = useState([]);
   
   const [isMounted, setIsMounted] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [adminToken, setAdminToken] = useState(null);
   const [toast, setToast] = useState(null);
 
-  const [currentAchievement, setCurrentAchievement] = useState(null);
+  const [awardQueue, setAwardQueue] = useState([]);
   const [isMusicOn, setIsMusicOn] = useState(false);
   const [musicVolume, setMusicVolume] = useState(() => {
     const savedVolume = localStorage.getItem('er_music_volume');
@@ -626,12 +388,9 @@ export default function App() {
   }, []);
   const [winStreak, setWinStreak] = useState(0);
   const [rewardCollection, setRewardCollection] = useState([]);
-  const [mathCollection, setMathCollection] = useState([]);
   const [pendingChestRewards, setPendingChestRewards] = useState([]);
-  const [isChestOpened, setIsChestOpened] = useState(false);
   const [loadedProfileKey, setLoadedProfileKey] = useState(null);
   const userKey = currentUser?.username || 'guest';
-  const seasonEvent = useMemo(() => getSeasonEvent(lang), [lang]);
   const audioContextRef = useRef(null);
   const musicGainRef = useRef(null);
   const musicIntervalRef = useRef(null);
@@ -749,25 +508,25 @@ export default function App() {
       localStorage.getItem(`er_syllable_stickers_${userKey}_${lang}`);
     setSyllableStickersByLang(normalizeLangProgress(savedSyllableStickers, lang));
 
-    const savedAchievements = localStorage.getItem(`er_achievements_${userKey}`);
-    setAchievements(savedAchievements ? JSON.parse(savedAchievements) : []);
 
     const savedLevel = localStorage.getItem(buildLevelStorageKey(userKey, lang, playMode));
     setCurrentIdx(savedLevel ? parseInt(savedLevel, 10) : 0);
   }, [userKey, lang, playMode]); 
 
   useEffect(() => {
-    const savedRewards = localStorage.getItem(`er_reward_collection_${userKey}`);
-    const savedMathCollection = localStorage.getItem(buildMathCollectionStorageKey(userKey));
+    const readList = (key) => {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(key) || '[]');
+        // older versions stored random "rare" prizes here; only Irbi's friends are kept
+        return Array.isArray(parsed) ? parsed.filter(isFriendId) : [];
+      } catch {
+        return [];
+      }
+    };
     const savedStreak = localStorage.getItem(`er_win_streak_${userKey}`);
-    const savedChestQueue = localStorage.getItem(`er_chest_queue_${userKey}`);
-    const savedChestOpened = localStorage.getItem(`er_chest_opened_${userKey}`);
-
-    setRewardCollection(savedRewards ? JSON.parse(savedRewards) : []);
-    setMathCollection(savedMathCollection ? JSON.parse(savedMathCollection) : []);
+    setRewardCollection(readList(`er_reward_collection_${userKey}`));
     setWinStreak(savedStreak ? parseInt(savedStreak, 10) || 0 : 0);
-    setPendingChestRewards(savedChestQueue ? JSON.parse(savedChestQueue) : []);
-    setIsChestOpened(savedChestOpened === '1');
+    setPendingChestRewards(readList(`er_chest_queue_${userKey}`));
     setLoadedProfileKey(userKey);
   }, [userKey]);
 
@@ -777,24 +536,19 @@ export default function App() {
 
   const wordsByLang = useMemo(
     () => LANGUAGE_CODES.reduce((acc, code) => {
-      acc[code] = decorateCollection(serverData?.[code] || [], code, 'word', seasonEvent.key);
+      acc[code] = serverData?.[code] || [];
       return acc;
     }, buildEmptyLangProgress()),
-    [serverData, seasonEvent.key]
+    [serverData]
   );
   const syllablesByLang = useMemo(
     () => LANGUAGE_CODES.reduce((acc, code) => {
-      acc[code] = decorateCollection(
-        approvedSyllables[code]
-          ? approvedSyllables[code].map((item) => ({ ...item, img: normalizeImageUrl(item.img) }))
-          : [],
-        code,
-        'syllable',
-        seasonEvent.key
-      );
+      acc[code] = approvedSyllables[code]
+        ? approvedSyllables[code].map((item) => ({ ...item, img: normalizeImageUrl(item.img) }))
+        : [];
       return acc;
     }, buildEmptyLangProgress()),
-    [seasonEvent.key]
+    []
   );
   const words = useMemo(
     () => wordsByLang[lang] || [],
@@ -807,27 +561,11 @@ export default function App() {
   const stickers = stickersByLang[lang] || [];
   const syllableStickers = syllableStickersByLang[lang] || [];
   const levels = playMode === 'SYLLABLES' ? syllableContent : words;
-  const chestQueue = pendingChestRewards;
-  const activeChestReward = chestQueue[0]
-    ? decorateReward(CHEST_REWARD_POOL.find((reward) => reward.id === chestQueue[0]) || CHEST_REWARD_POOL[0], lang)
-    : null;
-  const unlockedRewardItems = useMemo(
-    () => rewardCollection
-      .map((rewardId) => CHEST_REWARD_POOL.find((reward) => reward.id === rewardId))
-      .filter(Boolean)
-      .map((reward) => decorateReward(reward, lang)),
-    [rewardCollection, lang]
-  );
 
   useEffect(() => {
     if (loadedProfileKey !== userKey) return;
     localStorage.setItem(`er_reward_collection_${userKey}`, JSON.stringify(rewardCollection));
   }, [rewardCollection, loadedProfileKey, userKey]);
-
-  useEffect(() => {
-    if (loadedProfileKey !== userKey) return;
-    localStorage.setItem(buildMathCollectionStorageKey(userKey), JSON.stringify(mathCollection));
-  }, [mathCollection, loadedProfileKey, userKey]);
 
   useEffect(() => {
     if (loadedProfileKey !== userKey) return;
@@ -837,8 +575,7 @@ export default function App() {
   useEffect(() => {
     if (loadedProfileKey !== userKey) return;
     localStorage.setItem(`er_chest_queue_${userKey}`, JSON.stringify(pendingChestRewards));
-    localStorage.setItem(`er_chest_opened_${userKey}`, isChestOpened ? '1' : '0');
-  }, [pendingChestRewards, isChestOpened, loadedProfileKey, userKey]);
+  }, [pendingChestRewards, loadedProfileKey, userKey]);
   const feedbackText = {
     EN: {
       logout: 'You have been logged out.',
@@ -1319,7 +1056,9 @@ export default function App() {
       ...speakVoicePhrases(lang),
       ...listenVoicePhrases(lang, { words }),
       ...alphabetVoicePhrases(lang, { words }),
-      ...coloringVoicePhrases(lang)
+      ...coloringVoicePhrases(lang),
+      ...albumVoicePhrases(lang),
+      ...giftVoicePhrases(lang)
     ]);
     return downloadPhrases(phrases, async ({ text, options }) => {
       const remoteText = normalizeSpeechText(text, { ...options, engine: 'remote' });
@@ -1349,12 +1088,9 @@ export default function App() {
     setCurrentIdx(0);
     setStickersByLang(buildEmptyLangProgress());
     setSyllableStickersByLang(buildEmptyLangProgress());
-    setAchievements([]);
     setWinStreak(0);
     setRewardCollection([]);
-    setMathCollection([]);
     setPendingChestRewards([]);
-    setIsChestOpened(false);
 
     localStorage.removeItem(`er_stickers_map_${userKey}`);
     localStorage.removeItem(`er_stickers_${userKey}`);
@@ -1582,54 +1318,6 @@ export default function App() {
     setGameState('MENU');
   };
 
-  const allAchievementsList = useMemo(() => {
-    if (lang === 'EN') {
-      return [
-        { id: 'FIRST_WORD', title: 'First Word!', icon: '🌟', desc: 'Build your very first word' },
-        { id: 'THREE_WORDS', title: 'Learner', icon: '🔥', desc: 'Build 3 words' },
-        { id: 'FIVE_WORDS', title: 'Word Master', icon: '🏆', desc: 'Build 5 words' },
-        { id: 'TEN_WORDS', title: 'Legend', icon: '👑', desc: 'Build 10 words' },
-        { id: 'MATH_FIRST', title: 'First Count!', icon: '🔢', desc: 'Open your first math reward' },
-        { id: 'MATH_THREE', title: 'Number Explorer', icon: '🧠', desc: 'Collect 3 math rewards' },
-        { id: 'MATH_LISTENER', title: 'Number Echo', icon: '🔊', desc: 'Unlock the Listen to Numbers reward' },
-        { id: 'MATH_MASTER', title: 'Math Hero', icon: '🚀', desc: 'Collect 6 math rewards' }
-      ];
-    }
-    if (lang === 'KG') {
-      return [
-        { id: 'FIRST_WORD', title: 'Биринчи сөз!', icon: '🌟', desc: 'Эң биринчи сөзүңдү чогулт' },
-        { id: 'THREE_WORDS', title: 'Окуучу', icon: '🔥', desc: '3 сөз чогулт' },
-        { id: 'FIVE_WORDS', title: 'Сөз чебери', icon: '🏆', desc: '5 сөз чогулт' },
-        { id: 'TEN_WORDS', title: 'Уламыш', icon: '👑', desc: '10 сөз чогулт' },
-        { id: 'MATH_FIRST', title: 'Биринчи эсеп!', icon: '🔢', desc: 'Биринчи математика белегиңди ач' },
-        { id: 'MATH_THREE', title: 'Сан изилдөөчү', icon: '🧠', desc: '3 математика белегин чогулт' },
-        { id: 'MATH_LISTENER', title: 'Сандын үнү', icon: '🔊', desc: 'Сандарды угуу режиминин белегин ач' },
-        { id: 'MATH_MASTER', title: 'Математика баатыры', icon: '🚀', desc: '6 математика белегин чогулт' }
-      ];
-    }
-    if (lang === 'UZ') {
-      return [
-        { id: 'FIRST_WORD', title: 'Birinchi so`z!', icon: '🌟', desc: 'Birinchi so`zingni yig`' },
-        { id: 'THREE_WORDS', title: 'O`quvchi', icon: '🔥', desc: '3 ta so`z yig`' },
-        { id: 'FIVE_WORDS', title: 'So`z ustasi', icon: '🏆', desc: '5 ta so`z yig`' },
-        { id: 'TEN_WORDS', title: 'Afsona', icon: '👑', desc: '10 ta so`z yig`' },
-        { id: 'MATH_FIRST', title: 'Birinchi sanoq!', icon: '🔢', desc: 'Birinchi matematika sovg`asini och' },
-        { id: 'MATH_THREE', title: 'Son tadqiqotchisi', icon: '🧠', desc: '3 ta matematika sovg`asini yig`' },
-        { id: 'MATH_LISTENER', title: 'Raqam sadosi', icon: '🔊', desc: 'Raqamlarni tinglash rejimi sovg`asini och' },
-        { id: 'MATH_MASTER', title: 'Matematika qahramoni', icon: '🚀', desc: '6 ta matematika sovg`asini yig`' }
-      ];
-    }
-    return [
-      { id: 'FIRST_WORD', title: 'Первое слово!', icon: '🌟', desc: 'Собери своё самое первое слово' },
-      { id: 'THREE_WORDS', title: 'Ученик', icon: '🔥', desc: 'Собери 3 слова' },
-      { id: 'FIVE_WORDS', title: 'Мастер слов', icon: '🏆', desc: 'Собери 5 слов' },
-      { id: 'TEN_WORDS', title: 'Легенда', icon: '👑', desc: 'Собери 10 слов' },
-      { id: 'MATH_FIRST', title: 'Первый счёт!', icon: '🔢', desc: 'Открой первую математическую награду' },
-      { id: 'MATH_THREE', title: 'Исследователь чисел', icon: '🧠', desc: 'Собери 3 математические награды' },
-      { id: 'MATH_LISTENER', title: 'Голос цифр', icon: '🔊', desc: 'Открой награду в режиме «Слушай цифры»' },
-      { id: 'MATH_MASTER', title: 'Герой математики', icon: '🚀', desc: 'Собери 6 математических наград' }
-    ];
-  }, [lang]);
   const isAdmin = Boolean(currentUser?.isAdmin);
   const effectiveWordProgressByLang = useMemo(
     () => (
@@ -1653,68 +1341,24 @@ export default function App() {
     ),
     [isAdmin, syllableStickersByLang, syllablesByLang]
   );
-  const derivedMathAchievementIds = useMemo(() => {
-    const ids = [];
-    if (mathCollection.length >= 1) ids.push('MATH_FIRST');
-    if (mathCollection.length >= 3) ids.push('MATH_THREE');
-    if (mathCollection.some((reward) => reward?.id === 'math-listen-badge')) ids.push('MATH_LISTENER');
-    if (mathCollection.length >= 6) ids.push('MATH_MASTER');
-    return ids;
-  }, [mathCollection]);
-  const effectiveAchievements = isAdmin
-    ? allAchievementsList.map((achievement) => achievement.id)
-    : Array.from(new Set([...achievements, ...derivedMathAchievementIds]));
-
-  const checkAchievements = (stickersCount) => {
-    const userKey = currentUser ? currentUser.username : 'guest';
-    let newAchieve = null;
-    if (stickersCount === 1 && !achievements.includes('FIRST_WORD')) newAchieve = allAchievementsList.find((item) => item.id === 'FIRST_WORD');
-    else if (stickersCount === 3 && !achievements.includes('THREE_WORDS')) newAchieve = allAchievementsList.find((item) => item.id === 'THREE_WORDS');
-    else if (stickersCount === 5 && !achievements.includes('FIVE_WORDS')) newAchieve = allAchievementsList.find((item) => item.id === 'FIVE_WORDS');
-    else if (stickersCount === 10 && !achievements.includes('TEN_WORDS')) newAchieve = allAchievementsList.find((item) => item.id === 'TEN_WORDS');
-
-    if (newAchieve) {
-      const updatedList = [...achievements, newAchieve.id];
-      setAchievements(updatedList);
-      localStorage.setItem(`er_achievements_${userKey}`, JSON.stringify(updatedList));
-      setCurrentAchievement(newAchieve);
-      setTimeout(() => setCurrentAchievement(null), 4000);
-    }
-  };
-
+  // Every few finished games Irbi brings a gift with the next friend for the album.
   const registerFreshWin = () => {
     const nextStreak = winStreak + 1;
     setWinStreak(nextStreak);
-
-    if (nextStreak % 3 === 0) {
-      const reward = pickChestReward([...rewardCollection, ...pendingChestRewards], seasonEvent.key, lang);
-      setPendingChestRewards((prev) => [...prev, reward.id]);
-      setIsChestOpened(false);
-      showToast(lang === 'EN'
-        ? 'Treasure chest unlocked!'
-        : lang === 'KG'
-          ? 'Сюрприз сандык ачылды!'
-          : lang === 'UZ'
-            ? 'Syurpriz sandiq tayyor!'
-            : 'Открыт сундук-сюрприз!', 'success');
-    }
+    if (nextStreak % GIFT_EVERY !== 0) return;
+    const friend = nextFriendId([...rewardCollection, ...pendingChestRewards]);
+    if (friend) setPendingChestRewards((prev) => [...prev, friend]);
   };
 
-  const revealChestReward = () => {
-    const rewardId = pendingChestRewards[0];
-    if (!rewardId) return;
-    setIsChestOpened(true);
-    if (!rewardCollection.includes(rewardId)) {
-      setRewardCollection((prev) => [...prev, rewardId]);
-    }
+  const openGift = (friendId) => {
+    if (friendId && !rewardCollection.includes(friendId)) setRewardCollection((prev) => [...prev, friendId]);
   };
 
-  const closeChestReward = () => {
+  const closeGift = () => {
     setPendingChestRewards((prev) => prev.slice(1));
-    setIsChestOpened(false);
   };
 
-  // A finished memory or logic session: stars on the server and progress towards the treasure chest.
+  // A finished session in any game: stars on the server and a step towards Irbi's next gift.
   const handlePlaySessionComplete = async () => {
     registerFreshWin();
     if (currentUser && !currentUser.offline && !currentUser.isAdmin) {
@@ -1732,33 +1376,7 @@ export default function App() {
     }
   };
 
-  // Five math tasks in a row: a medal for the album and stars on the server.
-  const handleMathSessionComplete = async ({ activity, title, desc, object }) => {
-    const emojiByObject = {
-      apple: '🍎', banana: '🍌', cherry: '🍒', strawberry: '🍓', ball: '⚽', duck: '🦆', fish: '🐟', star: '⭐',
-      tulip: '🌷', car: '🚗', balloon: '🎈', bee: '🐝', ladybug: '🐞', cookie: '🍪', egg: '🥚', orange: '🍊',
-      pear: '🍐', carrot: '🥕', bird: '🐦', frog: '🐸', rabbit: '🐰', chick: '🐤', butterfly: '🦋'
-    };
-    setMathCollection((prev) => [
-      ...prev,
-      { id: `${activity.toLowerCase()}-${prev.length + 1}`, type: 'medal', icon: emojiByObject[object] || '⭐', title: `${title} ${prev.length + 1}`, desc }
-    ]);
-    if (currentUser && !currentUser.offline && !currentUser.isAdmin) {
-      try {
-        const res = await fetch(`${API_BASE_URL}/api/update-score`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username: currentUser.username, points: 10 })
-        });
-        const data = await res.json();
-        if (data.success) setCurrentUser((prev) => (prev ? { ...prev, score: data.newScore } : prev));
-      } catch {
-        console.error('Не удалось сохранить прогресс');
-      }
-    }
-  };
-
-  // Rewards for a built word: stars on the server, a sticker, achievements, chest progress.
+  // A built word: stars on the server and a sticker in the album.
   const handleWordComplete = async (level) => {
     if (!level?.id) return;
     const isSyllables = playMode === 'SYLLABLES';
@@ -1787,10 +1405,43 @@ export default function App() {
       localStorage.setItem(storageKey, JSON.stringify(next));
       return next;
     });
-    if (!isSyllables) checkAchievements(nextSolved.length);
-    registerFreshWin();
   };
 
+
+  const wordCount = LANGUAGE_CODES.reduce((sum, code) => sum + (stickersByLang[code]?.length || 0), 0);
+  const syllableCount = LANGUAGE_CODES.reduce((sum, code) => sum + (syllableStickersByLang[code]?.length || 0), 0);
+  const awards = useMemo(
+    () => computeAwards({ words: wordCount, syllables: syllableCount, friends: rewardCollection.length, stats: readStats(userKey) }),
+    // game counters live in storage, so they are re-read whenever the child comes back to a menu screen
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [wordCount, syllableCount, rewardCollection.length, userKey, gameState]
+  );
+
+  useEffect(() => {
+    if (!currentUser || currentUser.isAdmin || gameState !== 'MENU' || loadedProfileKey !== userKey) return;
+    const done = awards.filter((award) => award.done).map((award) => award.id);
+    const seen = readSeenAwards(userKey);
+    if (!seen) {
+      // first visit after this update: what is already earned is not announced again
+      writeSeenAwards(userKey, done);
+      return;
+    }
+    const fresh = awards.filter((award) => award.done && !seen.includes(award.id));
+    if (!fresh.length) return;
+    writeSeenAwards(userKey, [...seen, ...fresh.map((award) => award.id)]);
+    setAwardQueue((prev) => [...prev, ...fresh]);
+  }, [awards, currentUser, gameState, loadedProfileKey, userKey]);
+
+  const giftFriend = currentUser && gameState === 'MENU' ? pendingChestRewards[0] : null;
+  const shownAward = gameState === 'MENU' && !giftFriend ? awardQueue[0] : null;
+
+  useEffect(() => {
+    if (!shownAward) return undefined;
+    speakText(awardPhrase(lang, shownAward.id), { interrupt: true });
+    const id = window.setTimeout(() => setAwardQueue((prev) => prev.slice(1)), 4500);
+    return () => window.clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shownAward?.id]);
 
   if (!isMounted || !serverData) return <div className="App-header"><h1>{uiText[lang]?.loading || 'Loading...'}</h1></div>;
 
@@ -1821,45 +1472,39 @@ export default function App() {
         </div>
       ) : null}
       
-      {currentAchievement && (
-        <div className="achievement-toast">
-          <span style={{ fontSize: '2.5rem' }}>{currentAchievement.icon}</span>
-          <div>
-            <div style={{ fontSize: '0.9rem', color: '#555', textTransform: 'uppercase' }}>{uiText[lang]?.achievementUnlocked}</div>
-            <div>{currentAchievement.title}</div>
-          </div>
-        </div>
-      )}
-
-      <RewardChestModal
+      {giftFriend ? (
+        <GiftModal lang={lang} friendId={giftFriend} speakText={speakText} onOpen={openGift} onDone={closeGift} />
+      ) : null}
+      <AwardToast
         lang={lang}
-        reward={gameState === 'PLAYING' ? null : activeChestReward}
-        seasonTitle={seasonEvent.title}
-        opened={isChestOpened}
-        pendingCount={chestQueue.length}
-        onReveal={revealChestReward}
-        onClose={closeChestReward}
+        award={shownAward}
+        onOpen={() => {
+          setAwardQueue([]);
+          setGameState('ACHIEVEMENTS');
+        }}
       />
 
-      {gameState === 'ACHIEVEMENTS' && <Achievements achievements={effectiveAchievements} allAchievementsList={allAchievementsList} onClose={handleCloseOverlay} lang={lang} />}
+      {(gameState === 'ALBUM' || gameState === 'ACHIEVEMENTS') && (
+        <AlbumScreen
+          lang={lang}
+          initialTab={gameState === 'ACHIEVEMENTS' ? 'awards' : 'words'}
+          words={wordsByLang[lang] || []}
+          wordIds={effectiveWordProgressByLang[lang] || []}
+          syllables={syllablesByLang[lang] || []}
+          syllableIds={effectiveSyllableProgressByLang[lang] || []}
+          friends={rewardCollection}
+          wins={winStreak}
+          awards={awards}
+          speakText={speakText}
+          onExit={handleCloseOverlay}
+        />
+      )}
       {gameState === 'ADMIN' && (
         <AdminPanel
           onClose={handleCloseOverlay}
           apiBaseUrl={API_BASE_URL}
           adminToken={adminToken}
           showToast={showToast}
-        />
-      )}
-      {gameState === 'ALBUM' && (
-        <StickerAlbum
-          wordsByLang={wordsByLang}
-          wordProgressByLang={effectiveWordProgressByLang}
-          syllablesByLang={syllablesByLang}
-          syllableProgressByLang={effectiveSyllableProgressByLang}
-          rewardCollection={unlockedRewardItems}
-          mathCollection={mathCollection}
-          onClose={handleCloseOverlay}
-          lang={lang}
         />
       )}
       {gameState === 'SETTINGS' && <SettingsScreen lang={lang} onClose={handleCloseOverlay} speechRate={speechRate} setSpeechRate={setSpeechRate} toggleMusic={toggleMusic} isMusicOn={isMusicOn} musicVolume={musicVolume} onMusicVolumeChange={handleMusicVolumeChange} speakText={speakText} currentUser={currentUser} handleResetProgress={handleResetProgress} handleLogout={handleLogout} />}
@@ -1895,6 +1540,7 @@ export default function App() {
           speakText={speakText}
           prefetchSpeech={safePrefetchSpeech}
           onWordComplete={handleWordComplete}
+          onSessionComplete={handlePlaySessionComplete}
           onExit={() => setGameState('MENU')}
         />
       )}
@@ -1916,7 +1562,7 @@ export default function App() {
           userKey={userKey}
           speakText={speakText}
           prefetchSpeech={safePrefetchSpeech}
-          onSessionComplete={handleMathSessionComplete}
+          onSessionComplete={handlePlaySessionComplete}
           onExit={() => setGameState('MENU')}
         />
       )}

@@ -151,7 +151,7 @@ const spokenWord = (word) => String(word?.text || '').replace(/-/g, '').toLowerC
 
 export function WordGame({
   lang, playMode, levels, currentIdx, setCurrentIdx, solvedIds,
-  userKey, speakText, prefetchSpeech, onWordComplete, onExit
+  userKey, speakText, prefetchSpeech, onWordComplete, onSessionComplete, onExit
 }) {
   const t = TEXT[lang] || TEXT.RU;
   const mode = playMode === 'SYLLABLES' ? 'SYLLABLES' : 'WORDS';
@@ -448,6 +448,7 @@ export function WordGame({
     if (sessionWins.length >= SESSION_SIZE) {
       setShowSession(true);
       recordSession(userKey, `word:${mode}`);
+      onSessionComplete?.({ activity: mode });
       sfxTada();
       confetti({ particleCount: 160, spread: 100, origin: { y: 0.55 }, disableForReducedMotion: true });
       say(t.sessionDone, 'cheer');

@@ -47,32 +47,28 @@ const TEXT = {
     add: '{a} and {b} more. How many in all?', together: 'Let’s count together', addAnswer: '{a} and {b} make {s}!',
     moreHere: 'More here!', lessHere: 'Fewer here!', sessionDone: 'Hooray! Five tasks done!',
     next: 'Next', moreTasks: 'More', menu: 'Menu', listen: 'Listen again', home: 'Home',
-    praise: ['Great job!', 'Well done!', 'Amazing!', 'You did it!', 'Super!'],
-    reward: 'Counting star', rewardDesc: 'For five math tasks in a row.'
+    praise: ['Great job!', 'Well done!', 'Amazing!', 'You did it!', 'Super!']
   },
   RU: {
     count: 'Посчитай! Сколько тут?', findNumber: 'Найди цифру {n}', more: 'Где больше?', less: 'Где меньше?',
     add: '{a} и ещё {b}. Сколько всего?', together: 'Давай посчитаем вместе', addAnswer: '{a} и {b} — это {s}!',
     moreHere: 'Здесь больше!', lessHere: 'Здесь меньше!', sessionDone: 'Ура! Пять заданий готово!',
     next: 'Дальше', moreTasks: 'Ещё', menu: 'Меню', listen: 'Послушать ещё', home: 'Домой',
-    praise: ['Молодец!', 'Отлично!', 'Умница!', 'Здорово!', 'Супер!'],
-    reward: 'Звезда счёта', rewardDesc: 'За пять заданий по математике.'
+    praise: ['Молодец!', 'Отлично!', 'Умница!', 'Здорово!', 'Супер!']
   },
   KG: {
     count: 'Санап көр! Канча?', findNumber: '{n} санын тап', more: 'Кайсында көп?', less: 'Кайсында аз?',
     add: '{a} жана дагы {b}. Баары канча?', together: 'Келчи, бирге санайлы', addAnswer: '{a} менен {b} — {s}!',
     moreHere: 'Бул жерде көп!', lessHere: 'Бул жерде аз!', sessionDone: 'Ура! Беш тапшырма даяр!',
     next: 'Кийинки', moreTasks: 'Дагы', menu: 'Меню', listen: 'Дагы угуу', home: 'Үйгө',
-    praise: ['Азамат!', 'Мыкты!', 'Сонун!', 'Баракелде!', 'Жарайсың!'],
-    reward: 'Эсеп жылдызы', rewardDesc: 'Математикадан беш тапшырма үчүн.'
+    praise: ['Азамат!', 'Мыкты!', 'Сонун!', 'Баракелде!', 'Жарайсың!']
   },
   UZ: {
     count: 'Sanab ko‘r! Nechta?', findNumber: '{n} raqamini top', more: 'Qayerda ko‘p?', less: 'Qayerda kam?',
     add: '{a} va yana {b}. Hammasi nechta?', together: 'Kel, birga sanaymiz', addAnswer: '{a} va {b} — {s}!',
     moreHere: 'Bu yerda ko‘p!', lessHere: 'Bu yerda kam!', sessionDone: 'Ura! Beshta topshiriq tayyor!',
     next: 'Keyingi', moreTasks: 'Yana', menu: 'Menyu', listen: 'Yana tinglash', home: 'Uyga',
-    praise: ['Barakalla!', 'Zo‘r!', 'Ajoyib!', 'Ofarin!', 'Qoyil!'],
-    reward: 'Sanoq yulduzi', rewardDesc: 'Matematikadan beshta topshiriq uchun.'
+    praise: ['Barakalla!', 'Zo‘r!', 'Ajoyib!', 'Ofarin!', 'Qoyil!']
   }
 };
 
@@ -366,12 +362,7 @@ export function MathGame({ lang, activity: rawActivity, userKey, speakText, pref
       sfxTada();
       confetti({ particleCount: 160, spread: 100, origin: { y: 0.55 }, disableForReducedMotion: true });
       say(t.sessionDone, 'cheer');
-      onSessionComplete?.({
-        activity,
-        title: t.reward,
-        desc: t.rewardDesc,
-        object: sessionWins[sessionWins.length - 1]
-      });
+      onSessionComplete?.({ activity });
       return;
     }
     setTaskSeq((value) => value + 1);

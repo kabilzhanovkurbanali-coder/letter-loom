@@ -50,28 +50,28 @@ const TEXT = {
   EN: {
     clap: 'Listen to the word and clap each part', clapTurn: 'Clap!', clapTogether: 'Let’s clap together',
     rhyme: 'What rhymes with {word}?', guess: 'Where is the {word}?', first: 'What starts with {letter}?',
-    lookAgain: 'Listen again', sessionDone: 'Hooray! Great listening!',
+    sessionDone: 'Hooray! Great listening!',
     next: 'Next', more: 'More', menu: 'Menu', listen: 'Listen again', home: 'Home', clapButton: 'Clap',
     praise: ['Great job!', 'Well done!', 'Amazing!', 'You did it!', 'Super!']
   },
   RU: {
     clap: 'Послушай слово и похлопай по слогам', clapTurn: 'Хлопай!', clapTogether: 'Давай похлопаем вместе',
     rhyme: 'Что звучит похоже: {word}?', guess: 'Где {word}?', first: 'Что начинается на {letter}?',
-    lookAgain: 'Послушай ещё раз', sessionDone: 'Ура! Ты отлично слушаешь!',
+    sessionDone: 'Ура! Ты отлично слушаешь!',
     next: 'Дальше', more: 'Ещё', menu: 'Меню', listen: 'Послушать ещё', home: 'Домой', clapButton: 'Хлопнуть',
     praise: ['Молодец!', 'Отлично!', 'Умница!', 'Здорово!', 'Супер!']
   },
   KG: {
     clap: 'Сөздү ук да, муун боюнча чап', clapTurn: 'Чап!', clapTogether: 'Келчи, чогуу чабалы',
     rhyme: 'Кайсы сөз окшош угулат: {word}?', guess: '{word} кайда?', first: '{letter} тамгасынан эмне башталат?',
-    lookAgain: 'Дагы бир ук', sessionDone: 'Ура! Сен абдан жакшы угасың!',
+    sessionDone: 'Ура! Сен абдан жакшы угасың!',
     next: 'Кийинки', more: 'Дагы', menu: 'Меню', listen: 'Дагы угуу', home: 'Үйгө', clapButton: 'Чабуу',
     praise: ['Азамат!', 'Мыкты!', 'Сонун!', 'Баракелде!', 'Жарайсың!']
   },
   UZ: {
     clap: 'So‘zni tingla va bo‘g‘inlab qarsak chal', clapTurn: 'Qarsak chal!', clapTogether: 'Kel, birga qarsak chalamiz',
     rhyme: 'Qaysi so‘z ohangdosh: {word}?', guess: '{word} qayerda?', first: '{letter} harfidan nima boshlanadi?',
-    lookAgain: 'Yana bir tingla', sessionDone: 'Ura! Sen juda yaxshi tinglaysan!',
+    sessionDone: 'Ura! Sen juda yaxshi tinglaysan!',
     next: 'Keyingi', more: 'Yana', menu: 'Menyu', listen: 'Yana tinglash', home: 'Uyga', clapButton: 'Qarsak',
     praise: ['Barakalla!', 'Zo‘r!', 'Ajoyib!', 'Ofarin!', 'Qoyil!']
   }

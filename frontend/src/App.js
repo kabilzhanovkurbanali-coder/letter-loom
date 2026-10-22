@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 
 import './App.css';
-import { uiText } from './data/uiText';
 import { approvedSyllables } from './data/approvedSyllables';
 
 import { AdminPanel } from './components/AdminPanel';
@@ -287,6 +286,7 @@ const PHONETIC_SPEECH_MAPS = {
   }
 };
 const LANGUAGE_CODES = ['EN', 'RU', 'KG', 'UZ'];
+const LOADING_TEXT = { EN: 'Connecting...', RU: 'Загрузка...', KG: 'Жүктөлүүдө...', UZ: 'Yuklanmoqda...' };
 // Menu states that open one of the listening games.
 const LISTEN_STATES = { SYLLABLE_CLAP: 'CLAP', RHYME_TIME: 'RHYME', SOUND_QUIZ: 'GUESS', FIRST_SOUND: 'FIRST' };
 const buildLevelStorageKey = (userKey, lang, playMode) => `er_level_${userKey}_${lang}_${playMode}`;
@@ -1445,7 +1445,7 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shownAward?.id]);
 
-  if (!isMounted || !serverData) return <div className="App-header"><h1>{uiText[lang]?.loading || 'Loading...'}</h1></div>;
+  if (!isMounted || !serverData) return <div className="App-header"><h1>{LOADING_TEXT[lang] || LOADING_TEXT.RU}</h1></div>;
 
   const rotateLabel = {
     EN: 'Rotate your device to play',

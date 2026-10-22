@@ -33,28 +33,28 @@ const TEXT = {
   EN: {
     pairs: 'Find the matching pictures', pairsDone: 'All pairs found!',
     look: 'Look and remember', ready: 'Ready!', hide: 'Closing my eyes…', ask: 'What is missing?',
-    watch: 'Watch and listen', yourTurn: 'Your turn!', again: 'Watch again', tryAgain: 'Try again',
+    watch: 'Watch and listen', yourTurn: 'Your turn!', again: 'Watch again',
     sessionDone: 'Hooray! What a memory!', next: 'Next', more: 'More', menu: 'Menu', listen: 'Listen again', home: 'Home',
     praise: ['Great job!', 'Well done!', 'Amazing!', 'You did it!', 'Super!']
   },
   RU: {
     pairs: 'Найди одинаковые картинки', pairsDone: 'Все пары найдены!',
     look: 'Посмотри и запомни', ready: 'Готово!', hide: 'Закрываю глазки…', ask: 'Что исчезло?',
-    watch: 'Смотри и слушай', yourTurn: 'Теперь ты!', again: 'Смотри ещё раз', tryAgain: 'Попробуй ещё',
+    watch: 'Смотри и слушай', yourTurn: 'Теперь ты!', again: 'Смотри ещё раз',
     sessionDone: 'Ура! Какая память!', next: 'Дальше', more: 'Ещё', menu: 'Меню', listen: 'Послушать ещё', home: 'Домой',
     praise: ['Молодец!', 'Отлично!', 'Умница!', 'Здорово!', 'Супер!']
   },
   KG: {
     pairs: 'Окшош сүрөттөрдү тап', pairsDone: 'Бардык жуптар табылды!',
     look: 'Карап, эсиңде сакта', ready: 'Даяр!', hide: 'Көзүмдү жумам…', ask: 'Эмне жок болду?',
-    watch: 'Карап, ук', yourTurn: 'Эми сен!', again: 'Дагы бир кара', tryAgain: 'Дагы аракет кыл',
+    watch: 'Карап, ук', yourTurn: 'Эми сен!', again: 'Дагы бир кара',
     sessionDone: 'Ура! Эс тутумуң мыкты!', next: 'Кийинки', more: 'Дагы', menu: 'Меню', listen: 'Дагы угуу', home: 'Үйгө',
     praise: ['Азамат!', 'Мыкты!', 'Сонун!', 'Баракелде!', 'Жарайсың!']
   },
   UZ: {
     pairs: 'Bir xil rasmlarni top', pairsDone: 'Hamma juftlar topildi!',
     look: 'Qarab, eslab qol', ready: 'Tayyor!', hide: 'Ko‘zimni yumaman…', ask: 'Nima yo‘qoldi?',
-    watch: 'Qara va tingla', yourTurn: 'Endi sen!', again: 'Yana bir qara', tryAgain: 'Yana urinib ko‘r',
+    watch: 'Qara va tingla', yourTurn: 'Endi sen!', again: 'Yana bir qara',
     sessionDone: 'Ura! Xotirang zo‘r!', next: 'Keyingi', more: 'Yana', menu: 'Menyu', listen: 'Yana tinglash', home: 'Uyga',
     praise: ['Barakalla!', 'Zo‘r!', 'Ajoyib!', 'Ofarin!', 'Qoyil!']
   }

@@ -14,6 +14,7 @@ import { AwardToast, GiftModal, awardPhrase, giftVoicePhrases } from './componen
 import { MemoryGame, voicePhrases as memoryVoicePhrases } from './components/MemoryGame';
 import { LogicGame, voicePhrases as logicVoicePhrases } from './components/LogicGame';
 import { SpeakGame, voicePhrases as speakVoicePhrases } from './components/SpeakGame';
+import { ArticGame, voicePhrases as articVoicePhrases } from './components/ArticGame';
 import { TeacherPanel } from './components/TeacherPanel';
 import { ListenGame, voicePhrases as listenVoicePhrases } from './components/ListenGame';
 import { AlphabetBook, voicePhrases as alphabetVoicePhrases } from './components/AlphabetBook';
@@ -1054,6 +1055,7 @@ export default function App() {
       ...memoryVoicePhrases(lang, { words }),
       ...logicVoicePhrases(lang, { words }),
       ...speakVoicePhrases(lang),
+      ...articVoicePhrases(lang),
       ...listenVoicePhrases(lang, { words }),
       ...alphabetVoicePhrases(lang, { words }),
       ...coloringVoicePhrases(lang),
@@ -1590,6 +1592,18 @@ export default function App() {
             const user = await handleKidLogin(name);
             if (user) rememberProfile(user.username);
           }}
+        />
+      )}
+
+      {gameState === 'ARTIC' && (
+        <ArticGame
+          key={`${lang}-${userKey}`}
+          lang={lang}
+          userKey={userKey}
+          speakText={speakText}
+          prefetchSpeech={safePrefetchSpeech}
+          onSessionComplete={handlePlaySessionComplete}
+          onExit={() => setGameState('MENU')}
         />
       )}
 

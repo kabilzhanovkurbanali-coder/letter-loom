@@ -23,7 +23,8 @@ export const MODULES = [
     id: 'speech',
     icon: 'microphone',
     activities: [
-      { id: 'speak:ECHO', menuKey: 'echo' }, { id: 'speak:SYLLABLES', menuKey: 'sayIt' }, { id: 'speak:BLOW', menuKey: 'blow' },
+      { id: 'artic:GYM', menuKey: 'gym' }, { id: 'speak:ECHO', menuKey: 'echo' }, { id: 'speak:SYLLABLES', menuKey: 'sayIt' },
+      { id: 'speak:BLOW', menuKey: 'blow' },
       { id: 'listen:CLAP', menuKey: 'clap' }, { id: 'listen:RHYME', menuKey: 'rhyme' }
     ]
   },
@@ -32,10 +33,17 @@ export const MODULES = [
     icon: 'abacus',
     activities: [
       { id: 'math:COUNT', menuKey: 'mathCount' }, { id: 'math:NUMBERS', menuKey: 'mathNumbers' },
-      { id: 'math:COMPARE', menuKey: 'mathCompare' }, { id: 'math:ADD', menuKey: 'mathAdd' }, { id: 'color:PAINT', menuKey: 'color' }
+      { id: 'math:COMPARE', menuKey: 'mathCompare' }, { id: 'math:ADD', menuKey: 'mathAdd' }
     ]
   },
-  { id: 'memory', icon: 'cards', activities: [{ id: 'memory:PAIRS', menuKey: 'memory' }, { id: 'memory:MISSING', menuKey: 'missing' }, { id: 'memory:SEQUENCE', menuKey: 'sequence' }] },
+  {
+    id: 'memory',
+    icon: 'cards',
+    activities: [
+      { id: 'memory:PAIRS', menuKey: 'memory' }, { id: 'memory:MISSING', menuKey: 'missing' }, { id: 'memory:SEQUENCE', menuKey: 'sequence' },
+      { id: 'color:PAINT', menuKey: 'color' }
+    ]
+  },
   { id: 'logic', icon: 'brain', activities: [{ id: 'logic:ODD', menuKey: 'odd' }, { id: 'logic:PATTERN', menuKey: 'pattern' }, { id: 'logic:SORT', menuKey: 'sort' }] }
 ];
 

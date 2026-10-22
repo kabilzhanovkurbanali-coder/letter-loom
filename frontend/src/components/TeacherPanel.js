@@ -18,10 +18,10 @@ const TEXT = {
     reset: 'Reset progress', remove: 'Remove from list',
     confirmReset: 'Reset all progress? This cannot be undone.', confirmRemove: 'Remove from the list and delete progress on this device?',
     yes: 'Yes', cancel: 'Cancel',
-    privacy: 'All data stays on this device. The microphone records nothing.',
+    privacy: 'All data stays on this device. The microphone and camera record nothing.',
     offlineTitle: 'Offline use', offlineHint: 'Downloads the voice for every task in {lang} and all the pictures. For another language, switch the language and repeat.', offlineGo: 'Download', offlineProgress: '{done} of {total}',
     offlineDone: 'Done! The voice is saved.', offlineFailed: 'Not downloaded: {n}. Check the internet and try again.', offlineNoSw: 'To play without internet on the tablet itself, open the game over https.', langName: 'English',
-    modules: { letters: 'Letters and words', speech: 'Speech', math: 'Math', memory: 'Memory', logic: 'Logic' }
+    modules: { letters: 'Letters and words', speech: 'Speech', math: 'Math', memory: 'Memory and art', logic: 'Logic' }
   },
   RU: {
     title: 'Режим учителя', close: 'Закрыть', children: 'Дети', namePlaceholder: 'Имя ребёнка', add: 'Добавить',
@@ -33,10 +33,10 @@ const TEXT = {
     reset: 'Сбросить прогресс', remove: 'Убрать из списка',
     confirmReset: 'Сбросить весь прогресс? Это нельзя отменить.', confirmRemove: 'Убрать из списка и удалить прогресс на этом устройстве?',
     yes: 'Да', cancel: 'Отмена',
-    privacy: 'Все данные хранятся только на этом устройстве. Микрофон ничего не записывает.',
+    privacy: 'Все данные хранятся только на этом устройстве. Микрофон и камера ничего не записывают.',
     offlineTitle: 'Работа без интернета', offlineHint: 'Скачает голос всех заданий ({lang}) и все картинки. Для другого языка переключите язык и повторите.', offlineGo: 'Скачать', offlineProgress: '{done} из {total}',
     offlineDone: 'Готово! Голос сохранён.', offlineFailed: 'Не скачалось: {n}. Проверьте интернет и нажмите ещё раз.', offlineNoSw: 'Чтобы игра работала без интернета прямо на планшете, откройте её по https.', langName: 'русский',
-    modules: { letters: 'Буквы и слова', speech: 'Произношение', math: 'Математика', memory: 'Память', logic: 'Логика' }
+    modules: { letters: 'Буквы и слова', speech: 'Речь и произношение', math: 'Математика', memory: 'Память и творчество', logic: 'Логика' }
   },
   KG: {
     title: 'Мугалим режими', close: 'Жабуу', children: 'Балдар', namePlaceholder: 'Баланын аты', add: 'Кошуу',
@@ -48,10 +48,10 @@ const TEXT = {
     reset: 'Прогрессти тазалоо', remove: 'Тизмеден алып салуу',
     confirmReset: 'Бардык прогрессти тазалайсызбы? Муну кайтаруу мүмкүн эмес.', confirmRemove: 'Тизмеден алып, ушул түзмөктөгү прогрессти өчүрөсүзбү?',
     yes: 'Ооба', cancel: 'Жокко чыгаруу',
-    privacy: 'Бардык маалымат ушул түзмөктө гана сакталат. Микрофон эч нерсе жазбайт.',
+    privacy: 'Бардык маалымат ушул түзмөктө гана сакталат. Микрофон да, камера да эч нерсе жазбайт.',
     offlineTitle: 'Интернетсиз иштөө', offlineHint: 'Бардык тапшырмалардын үнүн ({lang}) жана бардык сүрөттөрдү жүктөйт. Башка тил үчүн тилди алмаштырып, кайталаңыз.', offlineGo: 'Жүктөө', offlineProgress: '{total} ичинен {done}',
     offlineDone: 'Даяр! Үн сакталды.', offlineFailed: 'Жүктөлгөн жок: {n}. Интернетти текшерип, кайра басыңыз.', offlineNoSw: 'Оюн планшетте интернетсиз иштеши үчүн аны https аркылуу ачыңыз.', langName: 'кыргызча',
-    modules: { letters: 'Тамгалар жана сөздөр', speech: 'Сүйлөө', math: 'Математика', memory: 'Эс тутум', logic: 'Логика' }
+    modules: { letters: 'Тамгалар жана сөздөр', speech: 'Сүйлөө', math: 'Математика', memory: 'Эс тутум жана чыгармачылык', logic: 'Логика' }
   },
   UZ: {
     title: 'O‘qituvchi rejimi', close: 'Yopish', children: 'Bolalar', namePlaceholder: 'Bolaning ismi', add: 'Qo‘shish',
@@ -63,10 +63,10 @@ const TEXT = {
     reset: 'Natijalarni tozalash', remove: 'Ro‘yxatdan olib tashlash',
     confirmReset: 'Barcha natijalar tozalansinmi? Buni qaytarib bo‘lmaydi.', confirmRemove: 'Ro‘yxatdan olib, shu qurilmadagi natijalarni o‘chirasizmi?',
     yes: 'Ha', cancel: 'Bekor qilish',
-    privacy: 'Barcha ma’lumotlar faqat shu qurilmada saqlanadi. Mikrofon hech narsa yozib olmaydi.',
+    privacy: 'Barcha ma’lumotlar faqat shu qurilmada saqlanadi. Mikrofon ham, kamera ham hech narsa yozib olmaydi.',
     offlineTitle: 'Internetsiz ishlash', offlineHint: 'Barcha topshiriqlar ovozini ({lang}) va barcha rasmlarni yuklab oladi. Boshqa til uchun tilni almashtirib, qaytaring.', offlineGo: 'Yuklab olish', offlineProgress: '{total} tadan {done}',
     offlineDone: 'Tayyor! Ovoz saqlandi.', offlineFailed: 'Yuklanmadi: {n}. Internetni tekshirib, qayta bosing.', offlineNoSw: 'O‘yin planshetda internetsiz ishlashi uchun uni https orqali oching.', langName: 'o‘zbekcha',
-    modules: { letters: 'Harflar va so‘zlar', speech: 'Talaffuz', math: 'Matematika', memory: 'Xotira', logic: 'Mantiq' }
+    modules: { letters: 'Harflar va so‘zlar', speech: 'Nutq va talaffuz', math: 'Matematika', memory: 'Xotira va ijod', logic: 'Mantiq' }
   }
 };
 

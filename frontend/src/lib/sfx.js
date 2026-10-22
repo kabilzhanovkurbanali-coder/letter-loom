@@ -111,3 +111,9 @@ export const sfxClap = async () => {
   gain.connect(context.destination);
   source.start();
 };
+
+// A pony's tongue click: one short, bright "tsok".
+export const sfxClick = () => playNotes([
+  { type: 'triangle', start: 1900, end: 650, time: 0, duration: 0.05, peak: 0.05 },
+  { type: 'sine', start: 900, end: 500, time: 0.01, duration: 0.06, peak: 0.02 }
+]);

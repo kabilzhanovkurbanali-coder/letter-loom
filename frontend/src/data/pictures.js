@@ -23,7 +23,7 @@ export const PICTURE_KEYS = new Set([
   'sock', 'sofa', 'soup', 'spider', 'spoon', 'springtime', 'squirrel', 'star', 'station',
   'strawberry', 'student', 'summer', 'sun', 'sunflower', 'sunshine', 'tambourine', 'taxi', 'tea',
   'teacher', 'teapot', 'telephone', 'television', 'tent', 'thunder', 'tiger', 'titmouse', 'tomato',
-  'tooth', 'toy', 'tractor', 'train', 'tree', 'tulip', 'turkey', 'turtle', 'umbrella', 'unicorn',
+  'tongue', 'tooth', 'toy', 'tractor', 'train', 'tree', 'tulip', 'turkey', 'turtle', 'umbrella', 'unicorn',
   'valley', 'water', 'watermelon', 'whale', 'wheel', 'wind', 'window', 'winter', 'wolf', 'world',
   'yurt', 'zebra'
 ]);

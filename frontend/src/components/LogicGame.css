@@ -336,6 +336,12 @@
   height: var(--lg-item);
 }
 
+/* the shell lets buttons pan the page; dragged shapes must keep the finger to themselves,
+   or Android starts a scroll and cancels the drag */
+.gs .lg-tray-item {
+  touch-action: none;
+}
+
 .lg-tray-item {
   position: relative;
   display: grid;

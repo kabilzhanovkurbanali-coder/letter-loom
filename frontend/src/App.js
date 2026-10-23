@@ -4,25 +4,27 @@ import './App.css';
 import { approvedSyllables } from './data/approvedSyllables';
 
 import { AdminPanel } from './components/AdminPanel';
-import { MainMenu, menuVoicePhrases } from './components/MainMenu';
-import { WordGame, voicePhrases as wordVoicePhrases } from './components/WordGame';
-import { MathGame, voicePhrases as mathVoicePhrases } from './components/MathGame';
+import { MainMenu } from './components/MainMenu';
+import { WordGame } from './components/WordGame';
+import { MathGame } from './components/MathGame';
 import { SettingsScreen } from './components/SettingsScreen';
-import { AlbumScreen, albumVoicePhrases } from './components/AlbumScreen';
-import { AwardToast, GiftModal, awardPhrase, giftVoicePhrases } from './components/GiftModal';
-import { MemoryGame, voicePhrases as memoryVoicePhrases } from './components/MemoryGame';
-import { LogicGame, voicePhrases as logicVoicePhrases } from './components/LogicGame';
-import { SpeakGame, voicePhrases as speakVoicePhrases } from './components/SpeakGame';
-import { ArticGame, voicePhrases as articVoicePhrases } from './components/ArticGame';
+import { AlbumScreen } from './components/AlbumScreen';
+import { AwardToast, GiftModal, awardPhrase } from './components/GiftModal';
+import { MemoryGame } from './components/MemoryGame';
+import { LogicGame } from './components/LogicGame';
+import { SpeakGame } from './components/SpeakGame';
+import { ArticGame } from './components/ArticGame';
 import { TeacherPanel } from './components/TeacherPanel';
-import { ListenGame, voicePhrases as listenVoicePhrases } from './components/ListenGame';
-import { AlphabetBook, voicePhrases as alphabetVoicePhrases } from './components/AlphabetBook';
-import { ColoringGame, voicePhrases as coloringVoicePhrases } from './components/ColoringGame';
+import { ListenGame } from './components/ListenGame';
+import { AlphabetBook } from './components/AlphabetBook';
+import { ColoringGame } from './components/ColoringGame';
 import { clearChildData, readStats, rememberProfile } from './lib/progress';
 import { GIFT_EVERY, computeAwards, isFriendId, nextFriendId, readSeenAwards, writeSeenAwards } from './lib/rewards';
-import { downloadPhrases, uniquePhrases } from './lib/voicePack';
-import { API_BASE_URL, normalizeImageUrl } from './lib/api';
+import { downloadPhrases } from './lib/voicePack';
+import { allVoicePhrases } from './lib/voicePackAll';
+import { API_BASE_URL, IS_STATIC_SITE, STATIC_BASE, normalizeImageUrl } from './lib/api';
 import { LETTER_NAME_MAPS } from './lib/letters';
+import { remoteSpeechText, voiceKey } from './lib/speechText';
 
 const SILENT_AUDIO_DATA_URI = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
 const IS_TEST_ENV = typeof process !== 'undefined' && process.env.NODE_ENV === 'test';
@@ -409,7 +411,7 @@ export default function App() {
 
 
   const fetchWords = () => {
-    fetch(`${API_BASE_URL}/api/words`)
+    fetch(IS_STATIC_SITE ? `${STATIC_BASE}/words.json` : `${API_BASE_URL}/api/words`)
       .then(async (res) => {
         const data = await res.json();
         if (!res.ok) {
@@ -649,6 +651,7 @@ export default function App() {
     const voiceLang = options.voiceLang || '';
     const rawText = String(text || '').trim();
     if (!rawText) return '';
+    if (engine === 'remote') return remoteSpeechText(rawText, { kind, lang });
 
     const withSpaces = rawText
       .replaceAll('-', ' ')
@@ -665,19 +668,6 @@ export default function App() {
     if (kind === 'token' && isSingleChar) {
       const upperToken = withSpaces.toUpperCase();
       return LETTER_NAME_MAPS[lang]?.[upperToken] || upperToken.toLowerCase();
-    }
-
-    if (engine === 'remote') {
-      if (kind === 'token') {
-        const tokenKey = withSpaces.toUpperCase();
-        const tokenName = LETTER_NAME_MAPS[lang]?.[tokenKey];
-        if (tokenName) return tokenName.toLowerCase();
-      }
-      if (lang === 'UZ') return withSpaces.toLowerCase();
-      if (lang === 'KG' && isCyrillicOnly) return withSpaces.toLowerCase();
-      if (lang === 'RU' && isCyrillicOnly) return withSpaces.toLowerCase();
-      if (lang === 'EN' && isLatinOnly) return withSpaces.toLowerCase();
-      return withSpaces;
     }
 
     const key = withSpaces.toUpperCase();
@@ -738,7 +728,23 @@ export default function App() {
     if ('webkitPreservesPitch' in audio) audio.webkitPreservesPitch = true;
   };
 
+  // The website copy plays recordings stored beside it; anything never recorded falls back to the
+  // device's own voice.
+  const staticVoiceRef = useRef({});
+  useEffect(() => {
+    if (!IS_STATIC_SITE || staticVoiceRef.current[lang]) return;
+    staticVoiceRef.current[lang] = new Set();
+    fetch(`${STATIC_BASE}/voice/${lang}.json`)
+      .then((res) => (res.ok ? res.json() : []))
+      .then((keys) => { staticVoiceRef.current[lang] = new Set(keys); })
+      .catch(() => {});
+  }, [lang]);
+
   const buildRemoteSpeechStreamUrl = useCallback((remoteText, requestOptions) => {
+    if (IS_STATIC_SITE) {
+      const key = voiceKey(remoteText);
+      return staticVoiceRef.current[lang]?.has(key) ? `${STATIC_BASE}/voice/${lang}/${key}.mp3` : '';
+    }
     const params = new URLSearchParams({
       text: remoteText,
       lang,
@@ -788,6 +794,7 @@ export default function App() {
     }
 
     const streamUrl = buildRemoteSpeechStreamUrl(remoteText, requestOptions);
+    if (!streamUrl) return null;
     const runFetch = async () => {
       const response = await fetch(streamUrl);
         if (!response.ok) {
@@ -966,6 +973,13 @@ export default function App() {
     }
 
     const streamUrl = buildRemoteSpeechStreamUrl(remoteText, options);
+    if (IS_STATIC_SITE) {
+      if (!streamUrl) throw new Error('This phrase has no recording');
+      if (speechObjectUrlRef.current) cleanupSpeechUrl(speechObjectUrlRef.current);
+      speechObjectUrlRef.current = null;
+      await playRemoteAudioUrl(streamUrl, options);
+      return requestId === speechRequestSeqRef.current;
+    }
 
     try {
       if (speechObjectUrlRef.current) cleanupSpeechUrl(speechObjectUrlRef.current);
@@ -1048,20 +1062,7 @@ export default function App() {
   // so the service worker on the tablet and the server's disk cache can play them without internet.
   const prepareOffline = async (onProgress) => {
     navigator.serviceWorker?.controller?.postMessage('cache-pictures');
-    const phrases = uniquePhrases([
-      ...menuVoicePhrases(lang),
-      ...wordVoicePhrases(lang, { words: wordsByLang[lang] || [], syllables: syllablesByLang[lang] || [] }),
-      ...mathVoicePhrases(lang),
-      ...memoryVoicePhrases(lang, { words }),
-      ...logicVoicePhrases(lang, { words }),
-      ...speakVoicePhrases(lang),
-      ...articVoicePhrases(lang),
-      ...listenVoicePhrases(lang, { words }),
-      ...alphabetVoicePhrases(lang, { words }),
-      ...coloringVoicePhrases(lang),
-      ...albumVoicePhrases(lang),
-      ...giftVoicePhrases(lang)
-    ]);
+    const phrases = allVoicePhrases(lang, { words: wordsByLang[lang] || [], syllables: syllablesByLang[lang] || [] });
     return downloadPhrases(phrases, async ({ text, options }) => {
       const remoteText = normalizeSpeechText(text, { ...options, engine: 'remote' });
       if (!remoteText) return;
@@ -1268,6 +1269,14 @@ export default function App() {
   // Children sign in by first name only. If the server is unreachable they still play,
   // with progress kept on this device.
   const handleKidLogin = async (name) => {
+    const playOnDevice = () => {
+      const user = { username: name, score: 0, isAdmin: false, offline: true };
+      setCurrentUser(user);
+      setAdminToken(null);
+      setGameState('MENU');
+      return user;
+    };
+    if (IS_STATIC_SITE) return playOnDevice();
     try {
       const res = await fetch(`${API_BASE_URL}/api/kid-login`, {
         method: 'POST',
@@ -1285,15 +1294,15 @@ export default function App() {
       setGameState('MENU');
       return user;
     } catch {
-      const user = { username: name, score: 0, isAdmin: false, offline: true };
-      setCurrentUser(user);
-      setAdminToken(null);
-      setGameState('MENU');
-      return user;
+      return playOnDevice();
     }
   };
 
   const handleAdminLogin = async (username, password) => {
+    if (IS_STATIC_SITE) {
+      showToast(feedbackText.connectionError, 'error');
+      return false;
+    }
     try {
       const res = await fetch(`${API_BASE_URL}/api/admin/login`, {
         method: 'POST',
@@ -1586,7 +1595,7 @@ export default function App() {
       {gameState === 'TEACHER' && (
         <TeacherPanel
           lang={lang}
-          onPrepareOffline={prepareOffline}
+          onPrepareOffline={IS_STATIC_SITE ? undefined : prepareOffline}
           onClose={() => setGameState('MENU')}
           onPlayAs={async (name) => {
             const user = await handleKidLogin(name);

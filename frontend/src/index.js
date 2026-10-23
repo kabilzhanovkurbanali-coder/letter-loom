@@ -14,7 +14,8 @@ root.render(
 
 // Offline support: the service worker keeps the app, pictures and voice on the tablet.
 // Browsers only allow it on https or localhost; elsewhere the game simply stays online-only.
-if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production' && window.isSecureContext) {
+// the website copy (REACT_APP_STATIC_SITE) has no server for the offline worker to cache
+if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production' && window.isSecureContext && process.env.REACT_APP_STATIC_SITE !== '1') {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/service-worker.js').catch((error) => {
       console.warn('Offline mode is unavailable:', error);

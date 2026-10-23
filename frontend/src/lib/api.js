@@ -31,10 +31,16 @@ const resolveApiBaseUrl = () => {
 export const API_BASE_URL = resolveApiBaseUrl();
 export const HAS_ABSOLUTE_API_BASE = /^https?:\/\//i.test(API_BASE_URL);
 
+// The copy on GitHub Pages has no server: words, pictures and recorded voices are plain files
+// beside the app, under its folder (PUBLIC_URL).
+export const IS_STATIC_SITE = process.env.REACT_APP_STATIC_SITE === '1';
+export const STATIC_BASE = process.env.PUBLIC_URL || '';
+
 export const normalizeImageUrl = (rawUrl) => {
   if (!rawUrl || typeof rawUrl !== 'string') return rawUrl;
   if (/^(data:|blob:)/i.test(rawUrl)) return rawUrl;
   if (/^(https?:)?\/\//i.test(rawUrl)) return rawUrl;
+  if (IS_STATIC_SITE) return rawUrl.startsWith(`${STATIC_BASE}/`) ? rawUrl : `${STATIC_BASE}/${rawUrl.replace(/^\//, '')}`;
 
   if (rawUrl.startsWith('/')) {
     return HAS_ABSOLUTE_API_BASE ? `${API_BASE_URL}${rawUrl}` : rawUrl;

@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/letter-loom/game/static/css/main.c4123e83.css",
-    "main.js": "/letter-loom/game/static/js/main.447b9cbc.js",
+    "main.js": "/letter-loom/game/static/js/main.f9169717.js",
     "static/js/453.20359781.chunk.js": "/letter-loom/game/static/js/453.20359781.chunk.js",
     "static/media/nunito-latin-wght-normal.woff2": "/letter-loom/game/static/media/nunito-latin-wght-normal.bc532ddabdb476d77e6f.woff2",
     "static/media/nunito-latin-ext-wght-normal.woff2": "/letter-loom/game/static/media/nunito-latin-ext-wght-normal.c6d65b7d2d87dd3fe27c.woff2",
@@ -10,11 +10,11 @@
     "static/media/nunito-vietnamese-wght-normal.woff2": "/letter-loom/game/static/media/nunito-vietnamese-wght-normal.aaa7ab2c71deaffabcd1.woff2",
     "index.html": "/letter-loom/game/index.html",
     "main.c4123e83.css.map": "/letter-loom/game/static/css/main.c4123e83.css.map",
-    "main.447b9cbc.js.map": "/letter-loom/game/static/js/main.447b9cbc.js.map",
+    "main.f9169717.js.map": "/letter-loom/game/static/js/main.f9169717.js.map",
     "453.20359781.chunk.js.map": "/letter-loom/game/static/js/453.20359781.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.c4123e83.css",
-    "static/js/main.447b9cbc.js"
+    "static/js/main.f9169717.js"
   ]
 }

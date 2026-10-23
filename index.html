@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Letter Loom — презентация</title>
+<meta name="description" content="Обучающая игра для детей 3–7 лет: читать, говорить и считать на родном языке вместе со снежным барсом Ирби.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Letter Loom — презентация">
+<meta property="og:description" content="Обучающая игра для детей 3–7 лет: читать, говорить и считать на родном языке вместе со снежным барсом Ирби.">
+<meta property="og:image" content="https://kabilzhanovkurbanali-coder.github.io/letter-loom/img/preview.jpg">
+<meta property="og:url" content="https://kabilzhanovkurbanali-coder.github.io/letter-loom/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#1D2A4F">
+<link rel="icon" href="favicon-64.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@600..900&family=Nunito+Sans:wght@400..800&display=swap">
+<style>
+  * { margin: 0; box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { background: #EEF3FA; color: #1D2A4F; font-family: 'Nunito Sans', 'Trebuchet MS', sans-serif; }
+  
+  section { color: #1D2A4F; font-family: 'Nunito Sans', 'Trebuchet MS', sans-serif; }
+  section p { line-height: 1.4; }
+  section img, section svg { display: block; }
+  .bar { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 10px; padding: 12px max(16px, env(safe-area-inset-right)) 12px max(16px, env(safe-area-inset-left)); background: rgba(238, 243, 250, 0.94); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-bottom: 1px solid rgba(29, 42, 79, 0.08); }
+  .bar img { width: 32px; height: 32px; border-radius: 8px; }
+  .bar .name { flex: 1; font-family: 'Nunito', 'Trebuchet MS', sans-serif; font-weight: 900; font-size: 20px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; min-height: 42px; padding: 0 18px; border: none; border-radius: 999px; font: inherit; font-weight: 800; font-size: 16px; text-decoration: none; cursor: pointer; white-space: nowrap; }
+  .btn-play { background: #2E6BD6; color: #FFFFFF; }
+  .btn-pdf { background: #FFFFFF; color: #1D2A4F; box-shadow: inset 0 0 0 1.5px rgba(29, 42, 79, 0.14); }
+  .btn svg { width: 18px; height: 18px; }
+  main { max-width: 1200px; margin: 0 auto; padding: 20px 16px 40px; display: flex; flex-direction: column; gap: 22px; }
+  .slide { position: relative; width: 100%; overflow: hidden; border: none; padding: 0; border-radius: 16px; background: #FFFFFF; box-shadow: 0 12px 32px rgba(29, 42, 79, 0.14); cursor: zoom-in; text-align: left; }
+  .slide > section { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: hidden; transform-origin: 0 0; }
+  .hint { color: #5E6A8C; font-size: 15px; text-align: center; line-height: 1.5; }
+  #show { position: fixed; inset: 0; z-index: 20; display: none; background: #0F1730; touch-action: manipulation; }
+  #show.on { display: block; }
+  #show .stage { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; overflow: hidden; }
+  #show .stage > section { position: absolute; inset: 0; width: 1920px; height: 1080px; overflow: hidden; }
+  #show .count { position: absolute; left: 14px; bottom: 14px; padding: 6px 12px; border-radius: 999px; background: rgba(15, 23, 48, 0.62); color: #FFFFFF; font-weight: 800; font-size: 15px; }
+  #show .ctrl { position: absolute; right: 14px; bottom: 12px; display: flex; gap: 8px; }
+  #show .ctrl button { width: 46px; height: 46px; border: none; border-radius: 50%; background: rgba(15, 23, 48, 0.62); color: #FFFFFF; font-size: 22px; line-height: 1; cursor: pointer; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25); }
+  @media (max-width: 600px) {
+    .bar .name { font-size: 17px; }
+    .btn { min-height: 38px; padding: 0 13px; font-size: 15px; }
+    main { padding: 14px 10px 32px; gap: 14px; }
+    .slide { border-radius: 10px; }
+  }
+</style>
+</head>
+<body>
+<header class="bar">
+  <img src="apple-touch-icon.png" alt="">
+  <span class="name">Letter Loom</span>
+  <button class="btn btn-play" id="play" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.2-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z" fill="currentColor"/></svg>Показать</button>
+  <a class="btn btn-pdf" href="letter-loom-presentation.pdf" download>PDF</a>
+</header>
+<main>
+<div class="slide" tabindex="0" data-index="0">
+<section style="background:#E8F4FF;padding:128px 128px 160px;display:grid;grid-template-columns:780px 820px;gap:64px;align-items:center">
+  <div style="display:flex;flex-direction:column;gap:32px">
+    <p style="font-size:24px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#2E6BD6">Обучающая игра для детей 3–7 лет</p>
+    <h1 style="font-family:'Nunito', 'Trebuchet MS', sans-serif;font-size:120px;font-weight:900;line-height:1;color:#1D2A4F">Letter<br>Loom</h1>
+    <p style="font-size:40px;line-height:1.3;color:#4A5578">Ребёнок учится читать, говорить и считать на родном языке — вместе со снежным барсом Ирби</p>
+    <div style="display:flex;flex-wrap:wrap;gap:16px">
+      <p style="font-size:24px;font-weight:700;color:#1D2A4F;background:#FDFCF8;padding:10px 24px;border-radius:999px">O‘zbekcha</p><p style="font-size:24px;font-weight:700;color:#1D2A4F;background:#FDFCF8;padding:10px 24px;border-radius:999px">Кыргызча</p><p style="font-size:24px;font-weight:700;color:#1D2A4F;background:#FDFCF8;padding:10px 24px;border-radius:999px">Русский</p><p style="font-size:24px;font-weight:700;color:#1D2A4F;background:#FDFCF8;padding:10px 24px;border-radius:999px">English</p>
+    </div>
+  </div>
+  
+  <div style="position:relative;width:820px;height:615px;flex:none">
+    <img src="img/cover.jpg" alt="Азбука: обведённая буква М ожила, рядом картинка «машина» и переключатель «Звук / Буква»" style="position:absolute;left:-55px;top:-55px;width:930px;height:725px">
+  </div>
+  <p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#5E6A8C">Наманган</p>
+</section></div>
+<div class="slide" tabindex="0" data-index="1">
+<section style="background:#FBF8F1;padding:128px 128px 160px;display:flex;flex-direction:column;gap:48px">
+  <h2 style="font-family:'Nunito', 'Trebuchet MS', sans-serif;font-size:64px;font-weight:800;line-height:1.15;color:#1D2A4F">Для кого мы это делаем</h2>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px">
+    
+    <div style="display:flex;flex-direction:column;gap:16px;background:#FDFCF8;border:2px solid #ECE5D3;border-radius:28px;padding:40px">
+      <div style="display:flex;align-items:center;gap:20px">
+        <div style="width:80px;height:80px;border-radius:50%;background:#DCE9FF;display:flex;align-items:center;justify-content:center;flex:none"><svg stroke="currentColor" fill="none" stroke-width="2.2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="#2E6BD6" style="color:#2E6BD6" height="44" width="44" xmlns="http://www.w3.org/2000/svg"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></div>
+        <h3 style="font-family:'Nunito', 'Trebuchet MS', sans-serif;font-size:40px;font-weight:800;line-height:1.2;color:#1D2A4F">Дети 3–7 лет</h3>
+      </div>
+      <p style="font-size:30px;line-height:1.4;color:#4A5578">В том числе дети с задержкой речи, трудностями со счётом и особыми потребностями.</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px;background:#FDFCF8;border:2px solid #ECE5D3;border-radius:28px;padding:40px">
+      <div style="display:flex;align-items:center;gap:20px">
+        <div style="width:80px;height:80px;border-radius:50%;background:#DCE9FF;display:flex;align-items:center;justify-content:center;flex:none"><svg stroke="currentColor" fill="none" stroke-width="2.2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="#2E6BD6" style="color:#2E6BD6" height="44" width="44" xmlns="http://www.w3.org/2000/svg"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg></div>
+        <h3 style="font-family:'Nunito', 'Trebuchet MS', sans-serif;font-size:40px;font-weight:800;line-height:1.2;color:#1D2A4F">Ещё не умеют читать</h3>
+      </div>
+      <p style="font-size:30px;line-height:1.4;color:#4A5578">Поэтому Ирби произносит каждое задание вслух, а кнопки — это картинки.</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px;background:#FDFCF8;border:2px solid #ECE5D3;border-radius:28px;padding:40px">
+      <div style="display:flex;align-items:center;gap:20px">
+        <div style="width:80px;height:80px;border-radius:50%;background:#DCE9FF;display:flex;align-items:center;justify-content:center;flex:none"><svg stroke="currentColor" fill="none" stroke-width="2.2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="#2E6BD6" style="color:#2E6BD6" height="44" width="44" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg></div>
+        <h3 style="font-family:'Nunito', 'Trebuchet MS', sans-serif;font-size:40px;font-weight:800;line-height:1.2;color:#1D2A4F">Говорят на своём языке</h3>
+      </div>
+      <p style="font-size:30px;line-height:1.4;color:#4A5578">Узбекский, кыргызский, русский и английский; тексты проверяют носители языка.</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px;background:#FDFCF8;border:2px solid #ECE5D3;border-radius:28px;padding:40px">
+      <div style="display:flex;align-items:center;gap:20px">
+        <div style="width:80px;height:80px;border-radius:50%;background:#DCE9FF;display:flex;align-items:center;justify-content:center;flex:none"><svg stroke="currentColor" fill="none" stroke-width="2.2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="#2E6BD6" style="color:#2E6BD6" height="44" width="44" xmlns="http://www.w3.org/2000/svg"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg></div>
+        <h3 style="font-family:'Nunito', 'Trebuchet MS', sans-serif;font-size:40px;font-weight:800;line-height:1.2;color:#1D2A4F">Занимаются в садике и дома</h3>
+      </div>
+      <p style="font-size:30px;line-height:1.4;color:#4A5578">На простых планшетах, без постоянного интернета; воспитатель видит успехи каждого ребёнка.</p>
+    </div>
+  </div>
+  <p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#5E6A8C">Letter Loom · 2</p>
+</section></div>
+<div class="slide" tabindex="0" data-index="2">
+<section style="background:#E8F4FF;padding:128px 128px 160px;display:flex;flex-direction:column;gap:40px">
+  <h2 style="font-family:'Nunito', 'Trebuchet MS', sans-serif;font-size:64px;font-weight:800;line-height:1.15;color:#1D2A4F">22 игры в четырёх разделах</h2>
+  <div style="display:grid;grid-template-columns:780px 820px;gap:64px;align-items:start">
+    <div style="display:flex;flex-direction:column;gap:26px">
+      
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div style="display:flex;align-items:center;gap:20px">
+          <div style="width:30px;height:30px;border-radius:50%;background:#FF7A59;flex:none"></div>
+          <h3 style="font-family:'Nunito', 'Trebuchet MS', sans-serif;font-size:40px;font-weight:800;line-height:1.2;color:#1D2A4F">Буквы и слова</h3>
+        </div>
+        <p style="font-size:30px;line-height:1.4;color:#4A5578;padding-left:50px">Азбука, Собери слово, Слоги, Первый звук, Угадай слово</p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div style="display:flex;align-items:center;gap:20px">
+          <div style="width:30px;height:30px;border-radius:50%;background:#F45FB0;flex:none"></div>
+          <h3 style="font-family:'Nunito', 'Trebuchet MS', sans-serif;font-size:40px;font-weight:800;line-height:1.2;color:#1D2A4F">Речь</h3>
+        </div>
+        <p style="font-size:30px;line-height:1.4;color:#4A5578;padding-left:50px">Зарядка язычка, Повтори звук, Скажи по слогам, Подуй на свечки, Хлопай слоги, Рифмы</p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div style="display:flex;align-items:center;gap:20px">
+          <div style="width:30px;height:30px;border-radius:50%;background:#FFAA2B;flex:none"></div>
+          <h3 style="font-family:'Nunito', 'Trebuchet MS', sans-serif;font-size:40px;font-weight:800;line-height:1.2;color:#1D2A4F">Счёт и логика</h3>
+        </div>
+        <p style="font-size:30px;line-height:1.4;color:#4A5578;padding-left:50px">Считаем, Цифры, Больше-меньше, Сложение, Найди лишнее, Продолжи бусы, Разложи</p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div style="display:flex;align-items:center;gap:20px">
+          <div style="width:30px;height:30px;border-radius:50%;background:#7C5CF0;flex:none"></div>
+          <h3 style="font-family:'Nunito', 'Trebuchet MS', sans-serif;font-size:40px;font-weight:800;line-height:1.2;color:#1D2A4F">Память и творчество</h3>
+        </div>
+        <p style="font-size:30px;line-height:1.4;color:#4A5578;padding-left:50px">Найди пару, Что исчезло?, Повтори, Раскраска</p>
+      </div>
+    </div>
+    
+  <div style="position:relative;width:820px;height:615px;flex:none">
+    <img src="img/menu.jpg" alt="Главное меню игры: четыре раздела с цветными кнопками игр и Ирби" style="position:absolute;left:-55px;top:-55px;width:930px;height:725px">
+  </div>
+  </div>
+  <p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#5E6A8C">Letter Loom · 3</p>
+</section></div>
+<div class="slide" tabindex="0" data-index="3">
+<section style="background:#FBF8F1;padding:128px 128px 160px;display:flex;flex-direction:column;gap:48px">
+  <h2 style="font-family:'Nunito', 'Trebuchet MS', sans-serif;font-size:64px;font-weight:800;line-height:1.15;color:#1D2A4F">Чтение: от звука к слову</h2>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:40px">
+    
+    <div style="display:flex;flex-direction:column;gap:20px">
+      
+  <div style="height:352px;background:#FFF1CC;border-radius:24px;display:flex;align-items:center;justify-content:center;gap:24px">
+    <div style="display:flex;flex-direction:column;align-items:center;gap:8px;background:#FDFCF8;border:2px solid #F3E2B3;border-radius:24px;padding:24px 36px">
+      <p style="font-family:'Nunito', 'Trebuchet MS', sans-serif;font-size:64px;font-weight:900;line-height:1;color:#2E6BD6">ммм</p>
+      <p style="font-size:24px;font-weight:800;color:#1D2A4F">Звук</p>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:24px">
+      <p style="font-family:'Nunito', 'Trebuchet MS', sans-serif;font-size:64px;font-weight:900;line-height:1;color:#6F7A99">эм</p>
+      <p style="font-size:24px;font-weight:700;color:#5E6A8C">Название</p>
+    </div>
+  </div>
+      <h3 style="font-family:'Nunito', 'Trebuchet MS', sans-serif;font-size:40px;font-weight:800;line-height:1.2;color:#1D2A4F">Звук, а не название</h3>
+      <p style="font-size:30px;line-height:1.4;color:#4A5578">Ирби говорит «ммм», а не «эм»: из звуков легко сложить слово.</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:20px">
+      
+  <div style="position:relative;width:528px;height:352px;flex:none">
+    <img src="img/trace.jpg" alt="Обводка буквы М: закрашенная часть, зелёная точка с цифрой 2, стрелки и звёздочка" style="position:absolute;left:-35.2px;top:-35.2px;width:598.4px;height:422.4px">
+  </div>
+      <h3 style="font-family:'Nunito', 'Trebuchet MS', sans-serif;font-size:40px;font-weight:800;line-height:1.2;color:#1D2A4F">Обводим по дорожке</h3>
+      <p style="font-size:30px;line-height:1.4;color:#4A5578">Пунктир, стрелки и зелёная точка. Засчитывается только движение по контуру.</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:20px">
+      
+  <div style="position:relative;width:528px;height:352px;flex:none">
+    <img src="img/word.jpg" alt="Собери слово: живые буквы К, О, Т под картинкой кота" style="position:absolute;left:-35.2px;top:-35.2px;width:598.4px;height:422.4px">
+  </div>
+      <h3 style="font-family:'Nunito', 'Trebuchet MS', sans-serif;font-size:40px;font-weight:800;line-height:1.2;color:#1D2A4F">Собираем и читаем</h3>
+      <p style="font-size:30px;line-height:1.4;color:#4A5578">Буква говорит свой звук, а слово звучит сначала по звукам, потом целиком: «кы-о-ты — кот».</p>
+    </div>
+  </div>
+  <p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#5E6A8C">Letter Loom · 4</p>
+</section></div>
+<div class="slide" tabindex="0" data-index="4">
+<section style="background:#FFC845;padding:128px 128px 160px;display:flex;flex-direction:column;gap:48px">
+  <h2 style="font-family:'Nunito', 'Trebuchet MS', sans-serif;font-size:64px;font-weight:800;line-height:1.15;color:#1D2A4F">Правила, по которым сделана игра</h2>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:32px">
+    
+    <div style="display:flex;flex-direction:column;gap:18px;background:#FFE6A6;border-radius:24px;padding:32px">
+      <div style="display:flex;align-items:center;gap:20px">
+        <div style="width:80px;height:80px;border-radius:50%;background:#FFC845;display:flex;align-items:center;justify-content:center;flex:none"><svg stroke="currentColor" fill="none" stroke-width="2.2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="#1D2A4F" style="color:#1D2A4F" height="42" width="42" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg></div>
+        <h3 style="font-family:'Nunito', 'Trebuchet MS', sans-serif;font-size:36px;font-weight:800;line-height:1.15;color:#1D2A4F">Без таймеров и проигрышей</h3>
+      </div>
+      <p style="font-size:30px;line-height:1.4;color:#2E3A5E">Ошибка — это «попробуй ещё», подсказка приходит сама.</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:18px;background:#FFE6A6;border-radius:24px;padding:32px">
+      <div style="display:flex;align-items:center;gap:20px">
+        <div style="width:80px;height:80px;border-radius:50%;background:#FFC845;display:flex;align-items:center;justify-content:center;flex:none"><svg stroke="currentColor" fill="none" stroke-width="2.2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="#1D2A4F" style="color:#1D2A4F" height="42" width="42" xmlns="http://www.w3.org/2000/svg"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg></div>
+        <h3 style="font-family:'Nunito', 'Trebuchet MS', sans-serif;font-size:36px;font-weight:800;line-height:1.15;color:#1D2A4F">Каждое задание звучит</h3>
+      </div>
+      <p style="font-size:30px;line-height:1.4;color:#2E3A5E">Ирби говорит на языке ребёнка: читать не нужно.</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:18px;background:#FFE6A6;border-radius:24px;padding:32px">
+      <div style="display:flex;align-items:center;gap:20px">
+        <div style="width:80px;height:80px;border-radius:50%;background:#FFC845;display:flex;align-items:center;justify-content:center;flex:none"><svg stroke="currentColor" fill="none" stroke-width="2.2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="#1D2A4F" style="color:#1D2A4F" height="42" width="42" xmlns="http://www.w3.org/2000/svg"><line x1="1" y1="1" x2="23" y2="23"></line><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"></path><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"></path><path d="M10.71 5.05A16 16 0 0 1 22.58 9"></path><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"></path><path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path><line x1="12" y1="20" x2="12.01" y2="20"></line></svg></div>
+        <h3 style="font-family:'Nunito', 'Trebuchet MS', sans-serif;font-size:36px;font-weight:800;line-height:1.15;color:#1D2A4F">Работает без интернета</h3>
+      </div>
+      <p style="font-size:30px;line-height:1.4;color:#2E3A5E">Голос и картинки скачиваются заранее; хватит простого планшета.</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:18px;background:#FFE6A6;border-radius:24px;padding:32px">
+      <div style="display:flex;align-items:center;gap:20px">
+        <div style="width:80px;height:80px;border-radius:50%;background:#FFC845;display:flex;align-items:center;justify-content:center;flex:none"><svg stroke="currentColor" fill="none" stroke-width="2.2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="#1D2A4F" style="color:#1D2A4F" height="42" width="42" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></div>
+        <h3 style="font-family:'Nunito', 'Trebuchet MS', sans-serif;font-size:36px;font-weight:800;line-height:1.15;color:#1D2A4F">Никаких личных данных</h3>
+      </div>
+      <p style="font-size:30px;line-height:1.4;color:#2E3A5E">Только имя. Микрофон и камера ничего не записывают и не отправляют.</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:18px;background:#FFE6A6;border-radius:24px;padding:32px">
+      <div style="display:flex;align-items:center;gap:20px">
+        <div style="width:80px;height:80px;border-radius:50%;background:#FFC845;display:flex;align-items:center;justify-content:center;flex:none"><svg stroke="currentColor" fill="none" stroke-width="2.2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="#1D2A4F" style="color:#1D2A4F" height="42" width="42" xmlns="http://www.w3.org/2000/svg"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg></div>
+        <h3 style="font-family:'Nunito', 'Trebuchet MS', sans-serif;font-size:36px;font-weight:800;line-height:1.15;color:#1D2A4F">Режим воспитателя</h3>
+      </div>
+      <p style="font-size:30px;line-height:1.4;color:#2E3A5E">Успехи каждого ребёнка, уровни сложности и демо-режим для показа.</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:18px;background:#FFE6A6;border-radius:24px;padding:32px">
+      <div style="display:flex;align-items:center;gap:20px">
+        <div style="width:80px;height:80px;border-radius:50%;background:#FFC845;display:flex;align-items:center;justify-content:center;flex:none"><svg stroke="currentColor" fill="none" stroke-width="2.2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" color="#1D2A4F" style="color:#1D2A4F" height="42" width="42" xmlns="http://www.w3.org/2000/svg"><polyline points="20 12 20 22 4 22 4 12"></polyline><rect x="2" y="7" width="20" height="5"></rect><line x1="12" y1="22" x2="12" y2="7"></line><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"></path><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"></path></svg></div>
+        <h3 style="font-family:'Nunito', 'Trebuchet MS', sans-serif;font-size:36px;font-weight:800;line-height:1.15;color:#1D2A4F">Награды без азарта</h3>
+      </div>
+      <p style="font-size:30px;line-height:1.4;color:#2E3A5E">Альбом друзей Ирби и подарок за каждые три занятия — без лотерей.</p>
+    </div>
+  </div>
+  <p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#5B4A16">Letter Loom · 5</p>
+</section></div>
+<div class="slide" tabindex="0" data-index="5">
+<section style="background:#1D2A4F;padding:128px 128px 160px;display:flex;flex-direction:column;gap:72px">
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <p style="font-size:24px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#FFC845">Следующий шаг</p>
+    <h2 style="font-family:'Nunito', 'Trebuchet MS', sans-serif;font-size:64px;font-weight:800;line-height:1.15;color:#F3F1EA">Пилот в Намангане</h2>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:48px">
+    
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div style="width:96px;height:96px;border-radius:50%;background:#FFC845;display:flex;align-items:center;justify-content:center">
+        <p style="font-family:'Nunito', 'Trebuchet MS', sans-serif;font-size:48px;font-weight:900;line-height:1;color:#1D2A4F">1</p>
+      </div>
+      <h3 style="font-family:'Nunito', 'Trebuchet MS', sans-serif;font-size:40px;font-weight:800;line-height:1.2;color:#F3F1EA;padding-top:12px">Показ</h3>
+      <p style="font-size:30px;line-height:1.4;color:#B9C6E4">Показываем игру воспитателям и детям в садике.</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div style="width:96px;height:96px;border-radius:50%;background:#FFC845;display:flex;align-items:center;justify-content:center">
+        <p style="font-family:'Nunito', 'Trebuchet MS', sans-serif;font-size:48px;font-weight:900;line-height:1;color:#1D2A4F">2</p>
+      </div>
+      <h3 style="font-family:'Nunito', 'Trebuchet MS', sans-serif;font-size:40px;font-weight:800;line-height:1.2;color:#F3F1EA;padding-top:12px">Пилот</h3>
+      <p style="font-size:30px;line-height:1.4;color:#B9C6E4">Несколько групп занимаются с игрой несколько недель, по пять заданий за раз.</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div style="width:96px;height:96px;border-radius:50%;background:#FFC845;display:flex;align-items:center;justify-content:center">
+        <p style="font-family:'Nunito', 'Trebuchet MS', sans-serif;font-size:48px;font-weight:900;line-height:1;color:#1D2A4F">3</p>
+      </div>
+      <h3 style="font-family:'Nunito', 'Trebuchet MS', sans-serif;font-size:40px;font-weight:800;line-height:1.2;color:#F3F1EA;padding-top:12px">Проверка языка</h3>
+      <p style="font-size:30px;line-height:1.4;color:#B9C6E4">Воспитатели-носители проверяют узбекские и кыргызские тексты и звуки букв по готовым таблицам.</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div style="width:96px;height:96px;border-radius:50%;background:#FFC845;display:flex;align-items:center;justify-content:center">
+        <p style="font-family:'Nunito', 'Trebuchet MS', sans-serif;font-size:48px;font-weight:900;line-height:1;color:#1D2A4F">4</p>
+      </div>
+      <h3 style="font-family:'Nunito', 'Trebuchet MS', sans-serif;font-size:40px;font-weight:800;line-height:1.2;color:#F3F1EA;padding-top:12px">Доработка</h3>
+      <p style="font-size:30px;line-height:1.4;color:#B9C6E4">Исправляем всё, что заметили дети и воспитатели, и готовим версию для других садиков.</p>
+    </div>
+  </div>
+  <p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#B9C6E4">Letter Loom · 6</p>
+</section></div>
+<p class="hint">Нажмите «Показать» — слайды откроются на весь экран. Листать: стрелки, пробел или касание.<br>На телефоне лучше повернуть экран горизонтально.</p>
+</main>
+<div id="show" role="dialog" aria-label="Показ презентации">
+  <div class="stage"></div>
+  <span class="count"></span>
+  <div class="ctrl">
+    <button type="button" data-go="-1" aria-label="Назад">‹</button>
+    <button type="button" data-go="1" aria-label="Дальше">›</button>
+    <button type="button" data-close aria-label="Закрыть">✕</button>
+  </div>
+</div>
+<script>
+(function () {
+  var W = 1920, H = 1080;
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  function fit() {
+    slides.forEach(function (box) {
+      var s = box.clientWidth / W;
+      box.style.height = (H * s) + 'px';
+      box.firstElementChild.style.transform = 'scale(' + s + ')';
+    });
+    if (show.classList.contains('on')) place();
+  }
+  var show = document.getElementById('show');
+  var stage = show.querySelector('.stage');
+  var count = show.querySelector('.count');
+  var index = 0;
+  function place() {
+    var s = Math.min(window.innerWidth / W, window.innerHeight / H);
+    var x = (window.innerWidth - W * s) / 2, y = (window.innerHeight - H * s) / 2;
+    stage.style.transform = 'translate(' + x + 'px,' + y + 'px) scale(' + s + ')';
+  }
+  function go(i) {
+    index = Math.max(0, Math.min(slides.length - 1, i));
+    var copy = slides[index].firstElementChild.cloneNode(true);
+    copy.style.transform = '';
+    stage.innerHTML = '';
+    stage.appendChild(copy);
+    count.textContent = (index + 1) + ' / ' + slides.length;
+    place();
+  }
+  function open(i) {
+    show.classList.add('on');
+    go(i);
+    var el = document.documentElement;
+    var request = el.requestFullscreen || el.webkitRequestFullscreen;
+    if (request) { try { var p = request.call(el); if (p && p.catch) p.catch(function () {}); } catch (e) {} }
+  }
+  function close() {
+    show.classList.remove('on');
+    var exit = document.exitFullscreen || document.webkitExitFullscreen;
+    if ((document.fullscreenElement || document.webkitFullscreenElement) && exit) { try { exit.call(document); } catch (e) {} }
+  }
+  document.getElementById('play').addEventListener('click', function () { open(0); });
+  slides.forEach(function (box, i) {
+    box.addEventListener('click', function () { open(i); });
+    box.addEventListener('keydown', function (event) { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); open(i); } });
+  });
+  show.addEventListener('click', function (event) {
+    var button = event.target.closest('button');
+    if (button && button.hasAttribute('data-close')) return close();
+    if (button && button.hasAttribute('data-go')) return go(index + Number(button.getAttribute('data-go')));
+    go(index + (event.clientX > window.innerWidth / 2 ? 1 : -1));
+  });
+  var startX = null;
+  show.addEventListener('touchstart', function (event) { startX = event.touches[0].clientX; }, { passive: true });
+  show.addEventListener('touchend', function (event) {
+    if (startX === null) return;
+    var dx = event.changedTouches[0].clientX - startX;
+    startX = null;
+    if (Math.abs(dx) > 50) { event.preventDefault(); go(index + (dx < 0 ? 1 : -1)); }
+  });
+  document.addEventListener('keydown', function (event) {
+    if (!show.classList.contains('on')) return;
+    if (['ArrowRight', 'ArrowDown', 'PageDown', ' ', 'Enter'].indexOf(event.key) >= 0) { event.preventDefault(); go(index + 1); }
+    else if (['ArrowLeft', 'ArrowUp', 'PageUp', 'Backspace'].indexOf(event.key) >= 0) { event.preventDefault(); go(index - 1); }
+    else if (event.key === 'Home') go(0);
+    else if (event.key === 'End') go(slides.length - 1);
+    else if (event.key === 'Escape') close();
+  });
+  window.addEventListener('resize', fit);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
+  fit();
+})();
+</script>
+</body>
+</html>

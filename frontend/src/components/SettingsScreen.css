@@ -76,7 +76,8 @@
   z-index: 2;
   flex: 1;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  /* two by two on a tablet: voice and music, letters and the grown-ups' card */
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
   align-content: center;
   gap: 18px;
   box-sizing: border-box;
@@ -104,7 +105,7 @@
 }
 
 .st-card-adult {
-  grid-column: 1 / -1;
+  justify-content: center;
 }
 
 .st-card {
@@ -186,6 +187,34 @@
 .st-btn:active,
 .st-speed:active {
   transform: translateY(3px);
+}
+
+/* ---------- letters: sound or name ---------- */
+.st-letter-modes {
+  display: flex;
+  gap: 12px;
+}
+
+.st-letter-mode {
+  width: clamp(110px, 13vw, 132px);
+}
+
+.st-letter-sample {
+  display: grid;
+  place-items: center;
+  min-height: 56px;
+  font-size: 1.7rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.st-hint {
+  margin: 0;
+  max-width: 280px;
+  color: #6b7699;
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-align: center;
 }
 
 /* ---------- music ---------- */
@@ -327,11 +356,10 @@
   }
 
   .st-card-adult {
-    grid-column: auto;
-  }
-
-  .st-adult-actions {
-    flex-direction: column;
+    grid-column: 1 / -1;
+    flex-direction: row;
+    justify-content: center;
+    gap: 16px;
   }
 
   .st-btn {
@@ -365,6 +393,23 @@
     width: 64px;
     padding: 8px 4px;
     font-size: 0.8rem;
+  }
+
+  .st-letter-modes {
+    gap: 6px;
+  }
+
+  .st-letter-mode {
+    width: 76px;
+  }
+
+  .st-letter-sample {
+    min-height: 34px;
+    font-size: 1.15rem;
+  }
+
+  .st-hint {
+    font-size: 0.78rem;
   }
 
   .st-toggle {

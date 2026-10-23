@@ -94,19 +94,14 @@
   height: 58%;
 }
 
+/* the first letter, as a living letter standing on the board */
 .ls-letter {
-  min-width: clamp(120px, 17vh, 160px);
-  height: clamp(120px, 17vh, 160px);
-  padding: 0 24px;
+  --lv-h: clamp(130px, 22vh, 190px);
+  display: flex;
+  margin-top: 14px;
+  padding: 0;
   border: none;
-  border-radius: 36px;
-  background: linear-gradient(165deg, #8cc2ff, #3a8bff);
-  color: #ffffff;
-  font-weight: 900;
-  font-size: clamp(4rem, 10vh, 6rem);
-  line-height: 1;
-  text-shadow: 0 5px 0 rgba(0, 0, 0, 0.16);
-  box-shadow: inset 0 6px 0 rgba(255, 255, 255, 0.35), 0 9px 0 #2160c4, 0 18px 26px rgba(30, 40, 90, 0.25);
+  background: none;
   animation: ls-bob 2.4s ease-in-out infinite;
 }
 
@@ -297,6 +292,10 @@
 
 /* phones held sideways */
 @media (max-height: 520px) {
+  .ls-letter {
+    --lv-h: clamp(84px, 26vh, 118px);
+  }
+
   .ls {
     --ls-picture: clamp(90px, 30vh, 130px);
     --ls-choice: clamp(64px, 19vh, 90px);

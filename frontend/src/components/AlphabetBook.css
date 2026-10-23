@@ -1,109 +1,101 @@
 .ab {
-  --ab-card: clamp(190px, 34vh, 290px);
+  --ab-card: clamp(220px, min(52vh, 38vw), 420px);
 }
 
 .ab-board {
   flex-direction: row;
   align-items: center;
-  gap: clamp(8px, 1.6vw, 18px);
+  gap: clamp(8px, 1.4vw, 16px);
   min-width: min(700px, 100%);
 }
 
 .ab-page {
   display: flex;
-  align-items: center;
-  gap: clamp(14px, 2.4vw, 32px);
+  align-items: stretch;
+  gap: clamp(14px, 2.2vw, 28px);
   animation: ab-page 0.45s cubic-bezier(0.2, 1.2, 0.4, 1);
 }
 
-/* ---------- the letter to trace ---------- */
-.ab-letter-card {
+/* ---------- the copybook card with the letter to trace ---------- */
+.ab-trace-wrap {
   position: relative;
-  width: var(--ab-card);
+  display: flex;
+}
+
+.ab-trace-card {
+  position: relative;
+  width: calc(var(--ab-card) * 0.9);
   height: var(--ab-card);
-  border-radius: 40px;
+  box-sizing: border-box;
+  padding: 3% 2%;
+  overflow: hidden;
+  border-radius: 36px;
   background:
-    radial-gradient(circle at 30% 25%, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0) 45%),
-    linear-gradient(165deg, #fff4d6, #ffe2a8);
-  box-shadow: inset 0 -8px 0 rgba(217, 160, 40, 0.22), 0 14px 26px rgba(30, 40, 90, 0.16);
+    radial-gradient(circle at 30% 18%, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0) 55%),
+    linear-gradient(170deg, #ffffff, #f3f7ff);
+  box-shadow: inset 0 -6px 0 rgba(170, 190, 230, 0.3), 0 14px 26px rgba(30, 40, 90, 0.14);
+  transition: box-shadow 0.3s ease;
 }
 
-.ab-letter-card.is-traced {
-  background:
-    radial-gradient(circle at 30% 25%, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0) 45%),
-    linear-gradient(165deg, #e6fff0, #b9f2d1);
+.ab-trace-card.is-done {
+  box-shadow: 0 0 0 5px var(--c1), inset 0 -6px 0 rgba(170, 190, 230, 0.3), 0 14px 30px rgba(30, 40, 90, 0.18);
 }
 
-.ab-letter {
+/* on the card's corner, where no letter ever reaches */
+.ab-again {
   position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  padding: 0;
-  border: none;
-  background: none;
-  color: rgba(255, 170, 43, 0.38);
-  font-weight: 900;
-  font-size: calc(var(--ab-card) * 0.72);
-  line-height: 1;
-  -webkit-text-stroke: 4px rgba(217, 133, 12, 0.55);
-}
-
-.ab-letter-card.is-traced .ab-letter {
-  color: rgba(34, 196, 122, 0.3);
-  -webkit-text-stroke-color: rgba(18, 138, 82, 0.5);
-}
-
-/* the canvas sits over the letter, so the child draws right on top of it */
-.ab-canvas {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  border-radius: inherit;
-  touch-action: none;
-  cursor: crosshair;
-}
-
-.ab-hear {
-  position: absolute;
-  right: 10px;
-  bottom: 10px;
+  left: -24px;
+  bottom: -24px;
+  z-index: 2;
   width: 52px;
   height: 52px;
   display: grid;
   place-items: center;
+  padding: 0;
   border: 3px solid #ffffff;
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 4px 0 rgba(217, 160, 40, 0.3);
+  border-radius: 50%;
+  background: linear-gradient(180deg, #ffd86b, #ffb81a);
+  color: #ffffff;
+  box-shadow: 0 5px 0 #c98a00, 0 10px 16px rgba(30, 40, 90, 0.18);
+  animation: ab-pop 0.45s cubic-bezier(0.2, 1.5, 0.4, 1) 1s both;
 }
 
-.ab-hear img {
-  width: 30px;
-  height: 30px;
+.ab-again svg {
+  width: 28px;
+  height: 28px;
 }
 
-/* ---------- the word picture ---------- */
+.ab-again:active {
+  transform: translateY(4px);
+}
+
+/* ---------- the word and the sound / name switch ---------- */
+.ab-side {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: calc(var(--ab-card) * 0.62);
+}
+
 .ab-word-card {
   position: relative;
-  width: calc(var(--ab-card) * 0.9);
-  height: var(--ab-card);
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  padding: 14px;
+  gap: 8px;
+  padding: 12px;
   border: none;
-  border-radius: 40px;
+  border-radius: 32px;
   background: radial-gradient(circle at 50% 40%, #ffffff 55%, #eef3ff 100%);
   box-shadow: inset 0 -6px 0 rgba(160, 180, 220, 0.3), 0 14px 26px rgba(30, 40, 90, 0.14);
 }
 
 .ab-word-card img {
-  width: 70%;
-  height: 62%;
+  width: 76%;
+  height: 58%;
   object-fit: contain;
   filter: drop-shadow(0 10px 8px rgba(30, 40, 80, 0.22));
   animation: ab-float 3s ease-in-out infinite;
@@ -119,14 +111,60 @@
   text-overflow: ellipsis;
   color: #55628a;
   font-weight: 900;
-  font-size: clamp(1.2rem, 3vh, 1.7rem);
+  font-size: clamp(1.1rem, 2.8vh, 1.6rem);
   letter-spacing: 0.04em;
   white-space: nowrap;
 }
 
 .ab-word b {
-  color: #ff7a33;
-  font-size: 1.25em;
+  font-size: 1.2em;
+}
+
+.ab-mode {
+  display: flex;
+  gap: 5px;
+  padding: 5px;
+  border-radius: 22px;
+  background: #e9eefa;
+  box-shadow: inset 0 2px 4px rgba(80, 100, 160, 0.14);
+}
+
+.ab-mode-btn {
+  flex: 1;
+  min-width: 0;
+  min-height: 52px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  padding: 4px 6px;
+  border: none;
+  border-radius: 17px;
+  background: transparent;
+  color: #7d89ad;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.ab-mode-btn b {
+  font-size: 0.95rem;
+  font-weight: 900;
+}
+
+.ab-mode-btn span {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.85rem;
+  font-weight: 800;
+  opacity: 0.85;
+}
+
+.ab-mode-btn.is-on {
+  background: #ffffff;
+  color: #3a6ff0;
+  box-shadow: 0 3px 0 #cfd9f1, 0 6px 10px rgba(40, 70, 140, 0.12);
 }
 
 /* ---------- page turning ---------- */
@@ -151,6 +189,11 @@
 
 .ab-turn:active {
   transform: translateY(5px);
+}
+
+/* the letter is traced: the next page invites */
+.ab-turn-next.is-ready {
+  animation: ab-ready 1.2s ease-in-out 1.6s infinite;
 }
 
 .ab-strip {
@@ -205,6 +248,16 @@
   50% { transform: translateY(-8px); }
 }
 
+@keyframes ab-pop {
+  from { opacity: 0; transform: scale(0.3); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes ab-ready {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.12); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .ab * {
     animation-duration: 0.01ms !important;
@@ -212,31 +265,90 @@
   }
 }
 
-.ll-lite .ab-word-card img {
+.ll-lite .ab-word-card img,
+.ll-lite .ab-turn-next.is-ready {
   animation: none;
 }
 
-/* narrow portrait screens only; a phone held sideways keeps the side-by-side page */
+/* narrow portrait screens: the page on top, the arrows under it */
 @media (max-width: 700px) and (min-height: 521px) {
+  .ab {
+    --ab-card: min(44vh, 84vw);
+  }
+
+  .ab-board {
+    flex-wrap: wrap;
+    justify-content: center;
+    min-width: 0;
+  }
+
   .ab-page {
+    order: -1;
     flex-direction: column;
+    align-items: center;
+  }
+
+  .ab-side {
+    width: calc(var(--ab-card) * 0.9);
   }
 
   .ab-word-card {
-    height: calc(var(--ab-card) * 0.7);
+    flex: none;
+    height: calc(var(--ab-card) * 0.42);
+    flex-direction: row;
+  }
+
+  .ab-word-card img {
+    width: 40%;
+    height: 90%;
   }
 }
 
 /* phones held sideways */
 @media (max-height: 520px) {
   .ab {
-    --ab-card: clamp(120px, 44vh, 170px);
+    --ab-card: clamp(150px, calc(100vh - 178px), 236px);
   }
 
   .ab-board {
     min-width: 0;
     max-width: 100%;
     box-sizing: border-box;
+  }
+
+  .ab-trace-card {
+    border-radius: 26px;
+  }
+
+  .ab-side {
+    gap: 8px;
+    width: calc(var(--ab-card) * 0.7);
+  }
+
+  .ab-word-card {
+    border-radius: 24px;
+    padding: 6px;
+    gap: 2px;
+  }
+
+  .ab-mode-btn {
+    min-height: 42px;
+    padding: 2px 4px;
+  }
+
+  .ab-mode-btn b {
+    font-size: 0.8rem;
+  }
+
+  .ab-mode-btn span {
+    font-size: 0.72rem;
+  }
+
+  .ab-again {
+    left: -19px;
+    bottom: -19px;
+    width: 42px;
+    height: 42px;
   }
 
   .ab-turn {

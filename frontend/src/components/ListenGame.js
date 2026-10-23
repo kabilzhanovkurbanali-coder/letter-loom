@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import confetti from 'canvas-confetti';
 import { GameBoard, GameShell, NextButton } from './GameShell';
+import { LivingLetter } from './LivingLetter';
 import { pictureUrl } from '../lib/api';
-import { getLetterName } from '../lib/letters';
+import { displayUnit, getLetterName, getLetterSound, readLetterMode } from '../lib/letters';
 import { isLevelLocked, recordSession, recordTask } from '../lib/progress';
 import { sfxBoop, sfxClap, sfxNote, sfxPlace, sfxTada } from '../lib/sfx';
 import { LABEL_KEYS, sayPhrase, textPhrases, wordPhrase } from '../lib/voicePack';
@@ -50,6 +51,7 @@ const TEXT = {
   EN: {
     clap: 'Listen to the word and clap each part', clapTurn: 'Clap!', clapTogether: 'Let’s clap together',
     rhyme: 'What rhymes with {word}?', guess: 'Where is the {word}?', first: 'What starts with {letter}?',
+    firstSound: 'What starts with the sound {sound}?',
     sessionDone: 'Hooray! Great listening!',
     next: 'Next', more: 'More', menu: 'Menu', listen: 'Listen again', home: 'Home', clapButton: 'Clap',
     praise: ['Great job!', 'Well done!', 'Amazing!', 'You did it!', 'Super!']
@@ -57,6 +59,7 @@ const TEXT = {
   RU: {
     clap: 'Послушай слово и похлопай по слогам', clapTurn: 'Хлопай!', clapTogether: 'Давай похлопаем вместе',
     rhyme: 'Что звучит похоже: {word}?', guess: 'Где {word}?', first: 'Что начинается на {letter}?',
+    firstSound: 'Что начинается на звук {sound}?',
     sessionDone: 'Ура! Ты отлично слушаешь!',
     next: 'Дальше', more: 'Ещё', menu: 'Меню', listen: 'Послушать ещё', home: 'Домой', clapButton: 'Хлопнуть',
     praise: ['Молодец!', 'Отлично!', 'Умница!', 'Здорово!', 'Супер!']
@@ -64,6 +67,7 @@ const TEXT = {
   KG: {
     clap: 'Сөздү ук да, муун боюнча чап', clapTurn: 'Чап!', clapTogether: 'Келчи, чогуу чабалы',
     rhyme: 'Кайсы сөз окшош угулат: {word}?', guess: '{word} кайда?', first: '{letter} тамгасынан эмне башталат?',
+    firstSound: '{sound} тыбышынан эмне башталат?',
     sessionDone: 'Ура! Сен абдан жакшы угасың!',
     next: 'Кийинки', more: 'Дагы', menu: 'Меню', listen: 'Дагы угуу', home: 'Үйгө', clapButton: 'Чабуу',
     praise: ['Азамат!', 'Мыкты!', 'Сонун!', 'Баракелде!', 'Жарайсың!']
@@ -71,6 +75,7 @@ const TEXT = {
   UZ: {
     clap: 'So‘zni tingla va bo‘g‘inlab qarsak chal', clapTurn: 'Qarsak chal!', clapTogether: 'Kel, birga qarsak chalamiz',
     rhyme: 'Qaysi so‘z ohangdosh: {word}?', guess: '{word} qayerda?', first: '{letter} harfidan nima boshlanadi?',
+    firstSound: '{sound} tovushidan nima boshlanadi?',
     sessionDone: 'Ura! Sen juda yaxshi tinglaysan!',
     next: 'Keyingi', more: 'Yana', menu: 'Menyu', listen: 'Yana tinglash', home: 'Uyga', clapButton: 'Qarsak',
     praise: ['Barakalla!', 'Zo‘r!', 'Ajoyib!', 'Ofarin!', 'Qoyil!']
@@ -173,6 +178,7 @@ export function ListenGame({ lang, activity: rawActivity, vocabulary, userKey, s
   const t = TEXT[lang] || TEXT.RU;
   const storageKey = levelStorageKey(userKey, activity);
   const [level, setLevel] = useState(() => readLevel(storageKey));
+  const [letterMode] = useState(() => readLetterMode());
   const [task, setTask] = useState(null);
   const [taskSeq, setTaskSeq] = useState(0);
   const [status, setStatus] = useState('playing');
@@ -234,9 +240,14 @@ export function ListenGame({ lang, activity: rawActivity, vocabulary, userKey, s
     if (!item) return '';
     if (item.activity === 'CLAP') return t.clap;
     if (item.activity === 'RHYME') return t.rhyme.replace('{word}', item.word);
-    if (item.activity === 'FIRST') return t.first.replace('{letter}', getLetterName(lang, item.letter));
+    if (item.activity === 'FIRST') {
+      // for reading, the first sound ("ммм") matters more than the letter's name ("эм")
+      return letterMode === 'name'
+        ? t.first.replace('{letter}', getLetterName(lang, item.letter))
+        : t.firstSound.replace('{sound}', getLetterSound(lang, item.letter));
+    }
     return t.guess.replace('{word}', item.word);
-  }, [lang, t]);
+  }, [lang, letterMode, t]);
 
   // Irbi claps the word out: each syllable lights up with a clap.
   const clapAlong = useCallback((item, startMs, then) => {
@@ -465,7 +476,9 @@ export function ListenGame({ lang, activity: rawActivity, vocabulary, userKey, s
               </button>
             ) : null}
             {task.activity === 'FIRST' ? (
-              <button type="button" className="ls-letter" onClick={() => say(prompt(task))} aria-label={task.letter}>{task.letter}</button>
+              <button type="button" className="ls-letter" onClick={() => say(prompt(task))} aria-label={displayUnit(task.letter)}>
+                <LivingLetter unit={task.letter} />
+              </button>
             ) : null}
             {task.activity === 'RHYME' ? (
               <button type="button" className="ls-picture ls-picture-small" onClick={() => sayWord(task.word)} aria-label={task.word}>
@@ -531,7 +544,8 @@ export const voicePhrases = (lang, { words = [] } = {}) => {
       wordPhrase(item.word, AS_WORD),
       sayPhrase(`${item.word}!`),
       sayPhrase(t.guess.replace('{word}', item.word)),
-      sayPhrase(t.first.replace('{letter}', getLetterName(lang, item.first)))
+      sayPhrase(t.first.replace('{letter}', getLetterName(lang, item.first))),
+      sayPhrase(t.firstSound.replace('{sound}', getLetterSound(lang, item.first)))
     );
   });
   (RHYMES[lang] || []).forEach(([[, a], [, b]]) => {

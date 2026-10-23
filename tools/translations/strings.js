@@ -175,7 +175,7 @@ function russianFor(ruNode, relative, code) {
 // Where a text appears, in words a teacher understands.
 const SCREENS = {
   'MainMenu.js': 'Главное меню', 'WordGame.js': 'Собери слово / Слоги', 'wordCatalog.js': 'Слова к картинкам',
-  'approvedSyllables.js': 'Слова по слогам', 'letters.js': 'Названия букв', 'SpeakGame.js': 'Речь: повтори звук, по слогам, свечки',
+  'approvedSyllables.js': 'Слова по слогам', 'letters.js': 'Названия и звуки букв', 'SpeakGame.js': 'Речь: повтори звук, по слогам, свечки',
   'ListenGame.js': 'Слушаем: хлопки, рифмы, угадай слово, первый звук', 'ArticGame.js': 'Зарядка язычка', 'MathGame.js': 'Счёт',
   'LogicGame.js': 'Логика', 'MemoryGame.js': 'Память', 'ColoringGame.js': 'Раскраска', 'AlphabetBook.js': 'Азбука',
   'AlbumScreen.js': 'Альбом', 'GiftModal.js': 'Подарок от Ирби', 'rewards.js': 'Альбом: друзья и награды',
@@ -183,7 +183,7 @@ const SCREENS = {
 };
 const ORDER = Object.keys(SCREENS);
 const screenOf = (item) => SCREENS[path.basename(item.file)] || path.basename(item.file);
-const ADULT_KEYS = /\.(adults|adminTitle|login|password|enter|teacher|gateAsk|serverAdmin|switchKid|admin|reset|resetAsk|yes|cancel|done|logout|progressReset|serverError)\b/;
+const ADULT_KEYS = /\.(adults|adminTitle|login|password|enter|teacher|gateAsk|serverAdmin|switchKid|admin|reset|resetAsk|yes|cancel|done|logout|progressReset|serverError|lettersTitle|letterSound|letterName|lettersHint)\b/;
 const audienceOf = (item) => (/TeacherPanel/.test(item.file) || ADULT_KEYS.test(item.id) ? 'взрослый' : 'ребёнок');
 const screenRank = (item) => {
   const index = ORDER.indexOf(path.basename(item.file));
@@ -209,8 +209,8 @@ function extract() {
           leaves(props[lang].value, code).forEach((leaf) => {
             if (!leaf.text.trim() || !/\p{L}/u.test(leaf.text)) return;
             const id = `${rel}#${formatPath([...segments, lang, ...leaf.relative])}`;
-            // the alphabets themselves (letter tiles, menu balloons) are letters, not texts to translate
-            if (/ALPHABET_UNITS|SKY_LETTERS/.test(id)) return;
+            // the alphabets themselves (letter tiles, menu balloons, the alphabet book) are letters, not texts to translate
+            if (/ALPHABET_UNITS|SKY_LETTERS|FULL_ALPHABETS|EXAMPLE_LETTER/.test(id)) return;
             items.push({
               id, lang, file: rel, kind: leaf.kind, text: leaf.text,
               // a word paired with a picture means that picture, whatever the RU list holds at that place

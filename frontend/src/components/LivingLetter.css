@@ -1,0 +1,253 @@
+.lv {
+  position: relative;
+  display: inline-flex;
+  line-height: 0;
+}
+
+.lv-svg {
+  display: block;
+  height: var(--lv-h, 120px);
+  width: auto;
+  overflow: visible;
+  transform-origin: 50% 84%;
+}
+
+.lv:not(.is-still) .lv-svg {
+  animation: lv-breathe 2.8s ease-in-out infinite;
+  animation-delay: var(--lv-delay, 0s);
+}
+
+.lv-ground {
+  fill: rgba(30, 40, 90, 0.15);
+  transition: opacity 0.2s ease;
+}
+
+.lv-rim,
+.lv-side,
+.lv-body,
+.lv-shine,
+.lv-hole-rim,
+.lv-hole,
+.lv-hole-lit {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.lv-rim {
+  stroke: #ffffff;
+  stroke-width: 31;
+}
+
+.lv-side,
+.lv-body {
+  stroke-width: 21;
+}
+
+.lv-shine {
+  stroke: rgba(255, 255, 255, 0.5);
+  stroke-width: 4.6;
+}
+
+.lv-rim.is-mark {
+  stroke-width: 25;
+}
+
+.lv-side.is-mark,
+.lv-body.is-mark {
+  stroke-width: 15;
+}
+
+.lv-shine.is-mark {
+  display: none;
+}
+
+/* ---------- eyes ---------- */
+.lv-eye {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: lv-blink 4.4s infinite;
+  animation-delay: var(--lv-blink, 0s);
+}
+
+.lv-eye-white {
+  fill: #ffffff;
+  stroke: rgba(30, 36, 60, 0.42);
+  stroke-width: 1.6;
+}
+
+.lv-pupil {
+  fill: #1f2430;
+}
+
+.lv-glint {
+  fill: #ffffff;
+}
+
+.lv-look {
+  transition: transform 0.2s ease;
+}
+
+.lv-smile-eyes {
+  display: none;
+  fill: none;
+  stroke: #1f2430;
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+
+.lv.is-happy .lv-eye {
+  display: none;
+}
+
+.lv.is-happy .lv-smile-eyes {
+  display: block;
+}
+
+/* ---------- moments ---------- */
+.lv.is-pick .lv-svg {
+  animation: lv-pick 0.42s ease;
+}
+
+.lv.is-drag .lv-svg {
+  animation: none;
+  transform: scale(0.95, 1.07);
+}
+
+.lv.is-drag .lv-look {
+  transform: translate(0, -2.8px);
+}
+
+.lv.is-drag .lv-ground {
+  opacity: 0.35;
+}
+
+.lv.is-land .lv-svg {
+  animation: lv-land 0.5s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+
+.lv.is-hop .lv-svg {
+  animation: lv-hop 0.62s cubic-bezier(0.3, 0, 0.4, 1);
+}
+
+.lv.is-nudge .lv-svg {
+  animation: lv-nudge 0.5s ease;
+}
+
+/* ---------- the hollow a letter fits into ---------- */
+.lv-hole-rim {
+  stroke: rgba(84, 104, 168, 0.22);
+  stroke-width: 29;
+}
+
+.lv-hole {
+  stroke: #d2dbf0;
+  stroke-width: 21;
+}
+
+.lv-hole-lit {
+  stroke: #e3e9f7;
+  stroke-width: 15;
+}
+
+.lv-hole-rim.is-mark {
+  stroke-width: 22;
+}
+
+.lv-hole.is-mark {
+  stroke-width: 15;
+}
+
+.lv-hole-lit.is-mark {
+  stroke-width: 10;
+}
+
+.lv.is-shadow.is-hint .lv-hole-rim {
+  stroke: rgba(255, 178, 40, 0.4);
+}
+
+.lv.is-shadow.is-hint .lv-hole {
+  stroke: #ffd98a;
+}
+
+.lv.is-shadow.is-hint .lv-hole-lit {
+  stroke: #fff0c8;
+}
+
+.lv.is-shadow.is-hint .lv-svg {
+  animation: lv-glow 1s ease-in-out infinite;
+}
+
+/* signs without stroke data are drawn with the rounded font */
+.lv-text {
+  font-family: 'Nunito Variable', 'Nunito', 'Trebuchet MS', sans-serif;
+  font-weight: 900;
+  font-size: 140px;
+  text-anchor: middle;
+  paint-order: stroke;
+  stroke: #ffffff;
+  stroke-width: 10px;
+  stroke-linejoin: round;
+}
+
+.lv-text-hole {
+  fill: #dbe3f5;
+  stroke: rgba(84, 104, 168, 0.17);
+  stroke-width: 6px;
+}
+
+@keyframes lv-breathe {
+  0%, 100% { transform: scale(1, 1); }
+  50% { transform: scale(1.025, 0.97); }
+}
+
+@keyframes lv-blink {
+  0%, 93%, 100% { transform: scaleY(1); }
+  96% { transform: scaleY(0.1); }
+}
+
+@keyframes lv-pick {
+  0% { transform: scale(1, 1); }
+  35% { transform: scale(0.9, 1.12) translateY(-6%); }
+  70% { transform: scale(1.06, 0.95); }
+  100% { transform: scale(1, 1); }
+}
+
+@keyframes lv-land {
+  0% { transform: scale(1.18, 0.8); }
+  55% { transform: scale(0.94, 1.07); }
+  100% { transform: scale(1, 1); }
+}
+
+@keyframes lv-hop {
+  0% { transform: translateY(0) scale(1, 1); }
+  18% { transform: translateY(0) scale(1.1, 0.88); }
+  50% { transform: translateY(-22%) scale(0.94, 1.08); }
+  82% { transform: translateY(0) scale(1.08, 0.92); }
+  100% { transform: translateY(0) scale(1, 1); }
+}
+
+@keyframes lv-nudge {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  30% { transform: translateY(-10%) rotate(-6deg); }
+  60% { transform: translateY(-3%) rotate(5deg); }
+}
+
+@keyframes lv-glow {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lv .lv-svg,
+  .lv .lv-eye {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+/* weak tablets: no breathing or blinking, only the short moments */
+.ll-lite .lv:not(.is-hop):not(.is-land):not(.is-pick) .lv-svg,
+.ll-lite .lv-eye {
+  animation: none;
+}

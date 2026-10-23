@@ -1,8 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import confetti from 'canvas-confetti';
 import { GameBoard, GameShell, NextButton } from './GameShell';
+import { LivingLetter } from './LivingLetter';
 import { normalizeImageUrl, pictureUrl } from '../lib/api';
-import { ALPHABET_UNITS, getLetterName } from '../lib/letters';
+import { rowExtent } from '../lib/glyphs';
+import {
+  ALPHABET_UNITS, NAME_SPEECH, SOUND_SPEECH, displayUnit, getLetterName, getLetterSound, letterSpeech, readLetterMode
+} from '../lib/letters';
 import { isLevelLocked, recordSession, recordTask } from '../lib/progress';
 import { LABEL_KEYS, sayPhrase, textPhrases, wordPhrase } from '../lib/voicePack';
 import { sfxBoop, sfxPick, sfxPlace, sfxTada, sfxWhoosh } from '../lib/sfx';
@@ -17,43 +21,34 @@ const DISTRACTORS_BY_LEVEL = [0, 0, 1, 2];
 const IDLE_HINT_MS = 9000;
 const SPEAK_WORD = { kind: 'word', rate: 0.85 };
 const SPEAK_TOKEN = { kind: 'token' };
-
-const TILE_COLORS = [
-  ['#ff9a8b', '#ff5e7e', '#d93d60'],
-  ['#7cc8ff', '#3a8bff', '#2563d6'],
-  ['#ffe07a', '#ffaa2b', '#d9850c'],
-  ['#74e6bb', '#1fb583', '#138c63'],
-  ['#b9a2ff', '#7c5cf0', '#5b3fcf'],
-  ['#ffa8dc', '#f45fb0', '#cc3f8c'],
-  ['#6ae3e3', '#18a8ba', '#0f8394'],
-  ['#ffbf7a', '#ff7a33', '#d95a17']
-];
+// sounding a built word out: one letter sound per beat, then the whole word
+const SOUND_BEAT_MS = 760;
 
 const TEXT = {
   EN: {
     build: 'Build the word', buildSyllables: 'Build the word from syllables',
-    findLetter: 'Find the letter', findSyllable: 'Find the syllable',
+    findLetter: 'Find the letter', findSyllable: 'Find the syllable', findSound: 'Find the sound {sound}',
     next: 'Next', more: 'More words', menu: 'Menu', listen: 'Listen again', home: 'Home',
     sessionDone: 'Hooray! Five words done!',
     praise: ['Great job!', 'Well done!', 'Amazing!', 'You did it!', 'Super!']
   },
   RU: {
     build: 'Собери слово', buildSyllables: 'Собери слово из слогов',
-    findLetter: 'Найди букву', findSyllable: 'Найди слог',
+    findLetter: 'Найди букву', findSyllable: 'Найди слог', findSound: 'Найди звук {sound}',
     next: 'Дальше', more: 'Ещё слова', menu: 'Меню', listen: 'Послушать ещё', home: 'Домой',
     sessionDone: 'Ура! Пять слов готово!',
     praise: ['Молодец!', 'Отлично!', 'Умница!', 'Здорово!', 'Супер!']
   },
   KG: {
     build: 'Сөздү чогулт', buildSyllables: 'Сөздү муундардан чогулт',
-    findLetter: 'Тамганы тап', findSyllable: 'Муунду тап',
+    findLetter: 'Тамганы тап', findSyllable: 'Муунду тап', findSound: '{sound} тыбышын тап',
     next: 'Кийинки', more: 'Дагы сөз', menu: 'Меню', listen: 'Дагы угуу', home: 'Үйгө',
     sessionDone: 'Ура! Беш сөз даяр!',
     praise: ['Азамат!', 'Мыкты!', 'Сонун!', 'Баракелде!', 'Жарайсың!']
   },
   UZ: {
     build: 'So‘zni yig‘', buildSyllables: 'So‘zni bo‘g‘inlardan yig‘',
-    findLetter: 'Harfni top', findSyllable: 'Bo‘g‘inni top',
+    findLetter: 'Harfni top', findSyllable: 'Bo‘g‘inni top', findSound: '{sound} tovushini top',
     next: 'Keyingi', more: 'Yana so‘zlar', menu: 'Menyu', listen: 'Yana tinglash', home: 'Uyga',
     sessionDone: 'Ura! Beshta so‘z tayyor!',
     praise: ['Barakalla!', 'Zo‘r!', 'Ajoyib!', 'Ofarin!', 'Qoyil!']
@@ -76,12 +71,6 @@ const aliveKindFor = (imageKey) => {
 };
 
 const imageKeyOf = (word) => word?.image || String(word?.img || '').split('/').pop()?.replace(/\.\w+$/, '') || '';
-
-// Same letter keeps the same colour everywhere; mod 11 spreads neighbouring code points apart.
-const colorFor = (unit) => {
-  const seed = String(unit || '').split('').reduce((sum, ch) => sum * 3 + ch.charCodeAt(0), 0);
-  return TILE_COLORS[(seed % 11) % TILE_COLORS.length];
-};
 
 const shuffle = (items) => {
   const copy = [...items];
@@ -148,6 +137,12 @@ const buildRound = (word, level, lang, mode, levels) => {
 };
 
 const spokenWord = (word) => String(word?.text || '').replace(/-/g, '').toLowerCase();
+const capitalize = (text) => (text ? text.charAt(0).toUpperCase() + text.slice(1) : text);
+
+// How one tile is spoken: a syllable as itself, a letter as its sound or its name.
+const unitSpeech = (lang, unit, mode, letterMode) => (mode === 'SYLLABLES'
+  ? { text: unit, options: SPEAK_TOKEN }
+  : letterSpeech(lang, unit, letterMode));
 
 export function WordGame({
   lang, playMode, levels, currentIdx, setCurrentIdx, solvedIds,
@@ -168,6 +163,10 @@ export function WordGame({
   const [showSession, setShowSession] = useState(false);
   const [irbiMood, setIrbiMood] = useState('idle');
   const [bubble, setBubble] = useState('');
+  const [letterMode] = useState(() => readLetterMode());
+  const [sounding, setSounding] = useState(-1);
+  const [isReading, setIsReading] = useState(false);
+  const [hop, setHop] = useState({ index: -1, n: 0 });
   const mistakesRef = useRef(0);
   const tapMissRef = useRef(0);
   const streakRef = useRef(0);
@@ -185,6 +184,9 @@ export function WordGame({
   const tiles = useMemo(() => round?.tiles || [], [round]);
   const usedTileIds = useMemo(() => new Set(Object.values(placed)), [placed]);
   const firstEmptySlot = units.findIndex((_, index) => placed[index] === undefined);
+  // one height for every letter of the round, so letters with dots or tails share the baseline
+  const extent = useMemo(() => rowExtent([...units, ...tiles.map((tile) => tile.unit)]), [tiles, units]);
+  const soundOut = mode === 'WORDS' && letterMode === 'sound';
   const promptText = word ? `${mode === 'SYLLABLES' ? t.buildSyllables : t.build}: ${spokenWord(word)}` : '';
 
   const later = useCallback((fn, ms) => {
@@ -202,6 +204,11 @@ export function WordGame({
     if (moodTimerRef.current) window.clearTimeout(moodTimerRef.current);
     moodTimerRef.current = window.setTimeout(() => setIrbiMood('idle'), Math.min(4200, 900 + phrase.length * 65));
   }, [speakText]);
+
+  const speakUnit = useCallback((unit) => {
+    const speech = unitSpeech(lang, unit, mode, letterMode);
+    speakText?.(speech.text, { ...speech.options, interrupt: true });
+  }, [lang, letterMode, mode, speakText]);
 
   useEffect(() => () => {
     timersRef.current.forEach((id) => window.clearTimeout(id));
@@ -230,6 +237,8 @@ export function WordGame({
     setStatus('playing');
     setHintTileId(null);
     setHintSlot(null);
+    setSounding(-1);
+    setIsReading(false);
     mistakesRef.current = 0;
     tapMissRef.current = 0;
     flyingRef.current = false;
@@ -237,7 +246,10 @@ export function WordGame({
     setBubble(promptText);
     const speakTimer = window.setTimeout(() => say(promptText), 350);
     prefetchSpeech?.(spokenWord(word), SPEAK_WORD);
-    Array.from(new Set(nextRound.tiles.map((tile) => tile.unit))).forEach((unit) => prefetchSpeech?.(unit, SPEAK_TOKEN));
+    Array.from(new Set(nextRound.tiles.map((tile) => tile.unit))).forEach((unit) => {
+      const speech = unitSpeech(lang, unit, mode, letterMode);
+      prefetchSpeech?.(speech.text, speech.options);
+    });
     return () => window.clearTimeout(speakTimer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [word?.id, lang, mode]);
@@ -250,11 +262,11 @@ export function WordGame({
     setHintTileId(tile.id);
     setHintSlot(firstEmptySlot);
     if (withVoice) {
-      const findWord = mode === 'SYLLABLES' ? t.findSyllable : t.findLetter;
-      const name = mode === 'SYLLABLES' ? unit.toLowerCase() : getLetterName(lang, unit);
-      say(`${findWord}: ${name}`, 'talking', {}, `${findWord}: ${unit}`);
+      if (mode === 'SYLLABLES') say(`${t.findSyllable}: ${unit.toLowerCase()}`, 'talking', {}, `${t.findSyllable}: ${unit}`);
+      else if (letterMode === 'sound') say(capitalize(t.findSound.replace('{sound}', getLetterSound(lang, unit))));
+      else say(`${t.findLetter}: ${getLetterName(lang, unit)}`, 'talking', {}, `${t.findLetter}: ${displayUnit(unit)}`);
     }
-  }, [firstEmptySlot, lang, mode, say, status, t.findLetter, t.findSyllable, tiles, units, usedTileIds]);
+  }, [firstEmptySlot, lang, letterMode, mode, say, status, t.findLetter, t.findSound, t.findSyllable, tiles, units, usedTileIds]);
 
   // Gentle automatic hint when the child pauses for a while.
   const resetIdle = useCallback(() => {
@@ -299,12 +311,28 @@ export function WordGame({
     onWordComplete?.(word, { mistakes: mistakesRef.current });
     adaptLevel();
 
-    // 1. the letters jump in a wave while the word is read slowly
+    // 1. in sound mode each letter jumps and says its sound, the way children learn to blend;
+    //    then all letters jump in a wave while the word is read slowly
     setIrbiMood('happy');
     const reading = mode === 'SYLLABLES'
       ? `${units.map((unit) => unit.toLowerCase()).join(', ')}. ${spokenWord(word)}!`
       : spokenWord(word);
-    later(() => speakText?.(reading, { ...SPEAK_WORD, interrupt: true }), 150);
+    let readAt = 150;
+    if (soundOut) {
+      units.forEach((unit, index) => later(() => {
+        setSounding(index);
+        setBubble(units.slice(0, index + 1).map(displayUnit).join('-'));
+        speakUnit(unit);
+      }, 300 + index * SOUND_BEAT_MS));
+      readAt = 300 + units.length * SOUND_BEAT_MS + 120;
+    }
+    later(() => {
+      setSounding(-1);
+      setIsReading(true);
+      if (soundOut) setBubble(`${units.map(displayUnit).join('-')} — ${spokenWord(word)}!`);
+      speakText?.(reading, { ...SPEAK_WORD, interrupt: true });
+    }, readAt);
+    const flyAt = readAt + (mode === 'SYLLABLES' ? 2450 : 1350);
 
     // 2. the letters fly into the picture...
     later(() => {
@@ -324,7 +352,7 @@ export function WordGame({
           { duration: 620, delay: index * 70, easing: 'cubic-bezier(0.5, 0, 0.6, 1)', fill: 'forwards' }
         );
       });
-    }, mode === 'SYLLABLES' ? 2600 : 1500);
+    }, flyAt);
 
     // 3. ...and the picture comes alive
     later(() => {
@@ -341,14 +369,14 @@ export function WordGame({
         disableForReducedMotion: true
       });
       setSessionWins((prev) => [...prev, word]);
-    }, (mode === 'SYLLABLES' ? 2600 : 1500) + 650 + units.length * 70);
+    }, flyAt + 650 + units.length * 70);
 
     // 4. Irbi praises
     later(() => {
       const praise = t.praise[Math.floor(Math.random() * t.praise.length)];
       say(praise, 'cheer');
-    }, (mode === 'SYLLABLES' ? 2600 : 1500) + 1500 + units.length * 70);
-  }, [adaptLevel, later, mode, onWordComplete, say, speakText, t.praise, units, word]);
+    }, flyAt + 1500 + units.length * 70);
+  }, [adaptLevel, later, mode, onWordComplete, say, soundOut, speakText, speakUnit, t.praise, units, word]);
 
   const placeTile = useCallback((tile, slotIndex) => {
     const nextPlaced = { ...placed, [slotIndex]: tile.id };
@@ -358,12 +386,9 @@ export function WordGame({
     tapMissRef.current = 0;
     const isLast = Object.keys(nextPlaced).length === units.length;
     sfxPlace(tile.unit, isLast);
-    if (isLast) {
-      celebrate();
-    } else {
-      speakText?.(tile.unit, { ...SPEAK_TOKEN, interrupt: true });
-    }
-  }, [celebrate, placed, speakText, units.length]);
+    // no voice here: the letter already said itself when it was picked up
+    if (isLast) celebrate();
+  }, [celebrate, placed, units.length]);
 
   const registerMistake = useCallback((slotIndex) => {
     mistakesRef.current += 1;
@@ -405,10 +430,16 @@ export function WordGame({
     return true;
   };
 
+  // a letter that is touched says its sound (or name) right away, like a real toy
+  const handlePick = (tile) => {
+    if (status !== 'playing' || flyingRef.current) return;
+    sfxPick(tile.unit);
+    speakUnit(tile.unit);
+  };
+
   const handleTap = (tile, element) => {
     if (status !== 'playing' || flyingRef.current) return;
     resetIdle();
-    sfxPick(tile.unit);
     const nextSlot = firstEmptySlot;
     const fits = nextSlot >= 0 && units[nextSlot] === tile.unit;
 
@@ -435,7 +466,6 @@ export function WordGame({
       return;
     }
 
-    speakText?.(tile.unit, { ...SPEAK_TOKEN, interrupt: true });
     setNudgeTileId(tile.id);
     later(() => setNudgeTileId(null), 600);
     if (levelRef.current === 1 && !fits) {
@@ -516,15 +546,34 @@ export function WordGame({
 
         {status === 'done' ? (
           <div className="wg-word" aria-live="polite">
-            {units.map((unit, index) => {
-              const [c1, c2] = colorFor(unit);
-              return (
-                <span key={`${unit}-${index}`} className="wg-word-unit" style={{ '--c1': c1, '--c2': c2, '--i': index }}>{unit}</span>
-              );
-            })}
+            {units.map((unit, index) => (
+              <button
+                key={`${unit}-${index}`}
+                type="button"
+                className="wg-word-unit"
+                style={{ '--i': index }}
+                onClick={() => {
+                  speakUnit(unit);
+                  setHop((prev) => ({ index, n: prev.n + 1 }));
+                }}
+                aria-label={displayUnit(unit)}
+              >
+                <LivingLetter
+                  key={hop.index === index ? hop.n : 0}
+                  unit={unit}
+                  extent={extent}
+                  happy
+                  className={hop.index === index ? 'is-hop' : ''}
+                  style={{ '--lv-delay': `${index * -0.37}s` }}
+                />
+              </button>
+            ))}
           </div>
         ) : (
-          <div className={`wg-slots ${status === 'celebrating' ? 'is-wave' : ''}`}>
+          <div
+            className={`wg-slots ${isReading ? 'is-wave' : ''}`}
+            style={{ '--wg-base': (extent.bottom - 128) / (extent.bottom - extent.top) }}
+          >
             {units.map((unit, index) => {
               const isFilled = placed[index] !== undefined;
               return (
@@ -535,7 +584,16 @@ export function WordGame({
                   className={`wg-slot ${isFilled ? 'is-filled' : ''} ${wobbleSlot === index ? 'is-wobble' : ''} ${hintSlot === index ? 'is-hint' : ''}`}
                   style={{ '--i': index }}
                 >
-                  {isFilled ? <LetterFace unit={unit} happy /> : <span className="wg-ghost">{unit}</span>}
+                  <LivingLetter unit={unit} extent={extent} shadow className={hintSlot === index ? 'is-hint' : ''} />
+                  {isFilled ? (
+                    <LivingLetter
+                      unit={unit}
+                      extent={extent}
+                      happy
+                      className={`wg-slot-letter ${sounding === index ? 'is-hop' : 'is-land'}`}
+                      style={{ '--lv-delay': `${index * -0.37}s` }}
+                    />
+                  ) : null}
                 </div>
               );
             })}
@@ -549,15 +607,19 @@ export function WordGame({
         <section className="gs-shelf wg-bank">
           {tiles.map((tile, index) => (
             usedTileIds.has(tile.id) ? (
-              <span key={tile.id} className="wg-tile-spot" />
+              <span key={tile.id} className="wg-tile-spot" aria-hidden="true">
+                <LivingLetter unit={tile.unit} extent={extent} eyes={false} still />
+              </span>
             ) : (
               <LetterTile
                 key={tile.id}
                 tile={tile}
                 index={index}
+                extent={extent}
                 isHint={hintTileId === tile.id}
                 isNudged={nudgeTileId === tile.id}
                 disabled={status !== 'playing'}
+                onPick={handlePick}
                 onTap={handleTap}
                 onDrop={handleDrop}
               />
@@ -569,26 +631,16 @@ export function WordGame({
   );
 }
 
-function LetterFace({ unit, happy = false }) {
-  const [c1, c2, c3] = colorFor(unit);
-  return (
-    <span
-      className={`wg-face ${happy ? 'is-happy' : ''} ${unit.length > 2 ? 'is-long' : unit.length > 1 ? 'is-pair' : ''}`}
-      style={{ '--c1': c1, '--c2': c2, '--c3': c3 }}
-    >
-      <span className="wg-face-eyes"><i /><i /></span>
-      <span className="wg-face-glyph">{unit}</span>
-      <span className="wg-face-feet"><i /><i /></span>
-    </span>
-  );
-}
-
-// Draggable living letter. Uses raw pointer events (mouse, touch and pen) and moves with a
+// A draggable living letter. Uses raw pointer events (mouse, touch and pen) and moves with a
 // CSS transform only, so dragging stays smooth on low-end tablets.
-function LetterTile({ tile, index, isHint, isNudged, disabled, onTap, onDrop }) {
+function LetterTile({ tile, index, extent, isHint, isNudged, disabled, onPick, onTap, onDrop }) {
   const ref = useRef(null);
   const startRef = useRef(null);
+  const pickTimerRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isPicked, setIsPicked] = useState(false);
+
+  useEffect(() => () => window.clearTimeout(pickTimerRef.current), []);
 
   const springBack = () => {
     const node = ref.current;
@@ -605,6 +657,10 @@ function LetterTile({ tile, index, isHint, isNudged, disabled, onTap, onDrop }) 
     event.preventDefault();
     ref.current?.setPointerCapture?.(event.pointerId);
     startRef.current = { x: event.clientX, y: event.clientY, dragging: false };
+    setIsPicked(true);
+    window.clearTimeout(pickTimerRef.current);
+    pickTimerRef.current = window.setTimeout(() => setIsPicked(false), 420);
+    onPick(tile);
   };
 
   const onPointerMove = (event) => {
@@ -617,7 +673,7 @@ function LetterTile({ tile, index, isHint, isNudged, disabled, onTap, onDrop }) 
       setIsDragging(true);
     }
     if (start.dragging) {
-      ref.current.style.transform = `translate(${dx}px, ${dy}px) scale(1.1) rotate(${Math.max(-12, Math.min(12, dx / 14))}deg)`;
+      ref.current.style.transform = `translate(${dx}px, ${dy}px) scale(1.12) rotate(${Math.max(-12, Math.min(12, dx / 14))}deg)`;
     }
   };
 
@@ -640,10 +696,11 @@ function LetterTile({ tile, index, isHint, isNudged, disabled, onTap, onDrop }) 
     springBack();
   };
 
+  const mood = isDragging ? 'is-drag' : isPicked ? 'is-pick' : isNudged ? 'is-nudge' : '';
   return (
     <div
       ref={ref}
-      className={`wg-tile ${isDragging ? 'is-dragging' : ''} ${isHint ? 'is-hint' : ''} ${isNudged ? 'is-nudged' : ''}`}
+      className={`wg-tile ${isDragging ? 'is-dragging' : ''} ${isHint ? 'is-hint' : ''}`}
       style={{ '--i': index }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
@@ -652,7 +709,7 @@ function LetterTile({ tile, index, isHint, isNudged, disabled, onTap, onDrop }) 
       role="button"
       aria-label={tile.unit}
     >
-      <LetterFace unit={tile.unit} />
+      <LivingLetter unit={tile.unit} extent={extent} className={mood} style={{ '--lv-delay': `${index * -0.37}s`, '--lv-blink': `${index * -0.6}s` }} />
     </div>
   );
 }
@@ -665,7 +722,7 @@ export const voicePhrases = (lang, { words = [], syllables = [] } = {}) => {
   const syllableUnits = new Set();
   words.forEach((word) => {
     out.push(sayPhrase(`${t.build}: ${spokenWord(word)}`), wordPhrase(spokenWord(word), SPEAK_WORD));
-    unitsOf(word).forEach((unit) => letters.add(unit));
+    unitsOf(word).forEach((unit) => letters.add(String(unit).toUpperCase()));
   });
   syllables.forEach((word) => {
     const units = unitsOf(word);
@@ -674,9 +731,18 @@ export const voicePhrases = (lang, { words = [], syllables = [] } = {}) => {
       wordPhrase(spokenWord(word), SPEAK_WORD),
       wordPhrase(`${units.map((unit) => unit.toLowerCase()).join(', ')}. ${spokenWord(word)}!`, SPEAK_WORD)
     );
-    units.forEach((unit) => syllableUnits.add(unit));
+    units.forEach((unit) => syllableUnits.add(String(unit).toUpperCase()));
   });
-  letters.forEach((unit) => out.push(wordPhrase(unit, SPEAK_TOKEN), sayPhrase(`${t.findLetter}: ${getLetterName(lang, unit)}`)));
+  // letters in both modes: the name ("эм") and the sound ("ммм"), with their hints
+  letters.forEach((unit) => {
+    const sound = getLetterSound(lang, unit);
+    out.push(
+      wordPhrase(unit, NAME_SPEECH),
+      sayPhrase(`${t.findLetter}: ${getLetterName(lang, unit)}`),
+      wordPhrase(sound, SOUND_SPEECH),
+      sayPhrase(t.findSound.replace('{sound}', sound))
+    );
+  });
   syllableUnits.forEach((unit) => out.push(wordPhrase(unit, SPEAK_TOKEN), sayPhrase(`${t.findSyllable}: ${unit.toLowerCase()}`)));
   return out;
 };

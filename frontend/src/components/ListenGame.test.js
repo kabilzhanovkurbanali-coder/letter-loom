@@ -2,6 +2,7 @@ import { render, fireEvent, act } from '@testing-library/react';
 import { ListenGame, buildListenTask } from './ListenGame';
 import { ColoringGame, buildColoringTask } from './ColoringGame';
 import { AlphabetBook } from './AlphabetBook';
+import { glyphFor } from '../lib/glyphs';
 
 jest.mock('canvas-confetti', () => jest.fn());
 jest.mock('../lib/sfx', () => ({
@@ -111,15 +112,90 @@ describe('coloring', () => {
 });
 
 describe('alphabet book', () => {
-  // jsdom has no canvas; tracing simply draws nothing here
-  beforeAll(() => { HTMLCanvasElement.prototype.getContext = () => null; });
+  beforeEach(() => window.localStorage.clear());
 
-  test('turns pages and names the letter', () => {
+  // jsdom draws nothing: the card is mapped 1:1 onto glyph units, so a finger can follow the strokes
+  const roadOf = () => {
+    const svg = document.querySelector('.lt');
+    const [vx, vy, vw, vh] = svg.getAttribute('viewBox').split(' ').map(Number);
+    svg.getBoundingClientRect = () => ({ left: 0, top: 0, x: 0, y: 0, width: vw, height: vh, right: vw, bottom: vh });
+    return { svg, at: (point) => ({ clientX: point.x - vx, clientY: point.y - vy, pointerId: 1 }) };
+  };
+
+  test('turns pages and says the letter as a sound, or by its name if chosen', () => {
     const speakText = jest.fn();
-    render(<AlphabetBook {...props} speakText={speakText} />);
+    const { unmount } = render(<AlphabetBook {...props} speakText={speakText} />);
     expect(document.querySelector('.ab-board').dataset.letter).toBe('А');
     fireEvent.click(document.querySelector('.ab-turn-next'));
     expect(document.querySelector('.ab-board').dataset.letter).toBe('Б');
+    expect(speakText).toHaveBeenCalledWith('бы', expect.objectContaining({ kind: 'sound' }));
+    unmount();
+
+    window.localStorage.setItem('ll_letter_mode', 'name');
+    render(<AlphabetBook {...props} speakText={speakText} />);
+    fireEvent.click(document.querySelector('.ab-turn-next'));
     expect(speakText).toHaveBeenCalledWith('Это буква бэ', expect.anything());
+  });
+
+  test('has the whole alphabet, Ё and Щ too', () => {
+    render(<AlphabetBook {...props} />);
+    const letters = Array.from(document.querySelectorAll('.ab-strip-item')).map((item) => item.textContent);
+    expect(letters).toHaveLength(33);
+    expect(letters).toEqual(expect.arrayContaining(['Ё', 'Й', 'Щ', 'Ъ', 'Ь']));
+  });
+
+  test('a letter traced along its road comes alive and fills a star', () => {
+    const speakText = jest.fn();
+    render(<AlphabetBook {...props} speakText={speakText} />);
+    const { svg, at } = roadOf();
+
+    // touching away from the start: Irbi shows where to begin
+    fireEvent.pointerDown(svg, at({ x: 80, y: 110 }));
+    fireEvent.pointerUp(svg, at({ x: 80, y: 110 }));
+    expect(speakText).toHaveBeenCalledWith('Начни с зелёной точки', expect.anything());
+    expect(svg.dataset.done).toBe('no');
+
+    glyphFor('А').strokes.forEach((stroke) => {
+      fireEvent.pointerDown(svg, at(stroke.points[0]));
+      stroke.points.forEach((point) => fireEvent.pointerMove(svg, at(point)));
+      fireEvent.pointerUp(svg, at(stroke.points[stroke.points.length - 1]));
+    });
+    expect(svg.dataset.done).toBe('yes');
+    expect(document.querySelector('.ab-trace-card.is-done')).not.toBeNull();
+    expect(document.querySelectorAll('.gs-star.is-on')).toHaveLength(1);
+  });
+
+  test('a scribble that leaves the road does not count', () => {
+    render(<AlphabetBook {...props} />);
+    const { svg, at } = roadOf();
+    const first = glyphFor('А').strokes[0];
+    fireEvent.pointerDown(svg, at(first.points[0]));
+    [{ x: 60, y: 40 }, { x: 80, y: 80 }, { x: 20, y: 100 }].forEach((point) => fireEvent.pointerMove(svg, at(point)));
+    fireEvent.pointerUp(svg, at({ x: 20, y: 100 }));
+    expect(svg.dataset.stroke).toBe('0');
+    expect(svg.dataset.done).toBe('no');
+  });
+});
+
+describe('first sound', () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => jest.useRealTimers());
+
+  test('asks for the first sound, or for the letter name if grown-ups chose names', () => {
+    const speakText = jest.fn();
+    const { unmount } = render(<ListenGame {...props} activity="FIRST" speakText={speakText} />);
+    act(() => { jest.advanceTimersByTime(2500); });
+    expect(speakText.mock.calls.some(([text]) => /^Что начинается на звук /.test(text))).toBe(true);
+    unmount();
+
+    window.localStorage.setItem('ll_letter_mode', 'name');
+    speakText.mockClear();
+    render(<ListenGame {...props} activity="FIRST" speakText={speakText} />);
+    act(() => { jest.advanceTimersByTime(2500); });
+    expect(speakText.mock.calls.some(([text]) => /^Что начинается на (?!звук)/.test(text))).toBe(true);
   });
 });

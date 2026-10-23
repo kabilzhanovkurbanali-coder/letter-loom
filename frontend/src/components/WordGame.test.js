@@ -65,17 +65,25 @@ describe('WordGame', () => {
     expect(document.querySelectorAll('.wg-slot.is-filled')).toHaveLength(0);
     expect(speakText).toHaveBeenCalledWith('ты', expect.objectContaining({ kind: 'sound' }));
 
-    // a letter speaks when it is picked up, not again when it lands
+    // a letter speaks when it is held, and again when it lands in its place
     speakText.mockClear();
-    tapTile('К');
-    expect(speakText.mock.calls.map(([text]) => text)).toEqual(['кы']);
+    const tileК = screen.getAllByRole('button', { name: 'К' }).find((node) => node.classList.contains('wg-tile'));
+    fireEvent.pointerDown(tileК, { clientX: 10, clientY: 10, pointerId: 1 });
+    act(() => { jest.advanceTimersByTime(1000); });
+    fireEvent.pointerUp(tileК, { clientX: 10, clientY: 10, pointerId: 1 });
+    expect(speakText.mock.calls.map(([text]) => text)).toEqual(['кы', 'кы']);
+    expect(document.querySelectorAll('.wg-slot.is-filled')).toHaveLength(1);
+
+    // a quick tap: the letter lands while still talking, so it is said once, not "к-кы"
+    speakText.mockClear();
     tapTile('О');
+    expect(speakText.mock.calls.map(([text]) => text)).toEqual(['о']);
     tapTile('Т');
     expect(onWordComplete).toHaveBeenCalledWith(levels[0], { mistakes: 0 });
 
     // the built word is sounded out letter by letter, then read
     speakText.mockClear();
-    act(() => { jest.advanceTimersByTime(6000); });
+    act(() => { jest.advanceTimersByTime(7000); });
     expect(speakText.mock.calls.map(([text]) => text).slice(0, 4)).toEqual(['кы', 'о', 'ты', 'кот']);
     expect(screen.getByRole('button', { name: /дальше/i })).toBeInTheDocument();
   });
@@ -98,6 +106,7 @@ describe('WordGame', () => {
         onExit={jest.fn()}
       />
     );
+    act(() => { jest.advanceTimersByTime(400); });
     tapTile('Т');
     expect(speakText).toHaveBeenCalledWith('Т', expect.objectContaining({ kind: 'token' }));
     tapTile('К');

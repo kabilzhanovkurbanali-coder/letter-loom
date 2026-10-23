@@ -23,6 +23,10 @@ const SPEAK_WORD = { kind: 'word', rate: 0.85 };
 const SPEAK_TOKEN = { kind: 'token' };
 // sounding a built word out: one letter sound per beat, then the whole word
 const SOUND_BEAT_MS = 760;
+// a letter that lands while it is still saying itself from the pick-up stays quiet (no "к-кы")
+const LANDING_QUIET_MS = 600;
+// the word's celebration waits until the last letter has said itself
+const CELEBRATE_AFTER_MS = 900;
 
 const TEXT = {
   EN: {
@@ -168,6 +172,7 @@ export function WordGame({
   const [isReading, setIsReading] = useState(false);
   const [hop, setHop] = useState({ index: -1, n: 0 });
   const mistakesRef = useRef(0);
+  const lastVoiceRef = useRef({ unit: null, at: 0 });
   const tapMissRef = useRef(0);
   const streakRef = useRef(0);
   const timersRef = useRef([]);
@@ -207,6 +212,7 @@ export function WordGame({
 
   const speakUnit = useCallback((unit) => {
     const speech = unitSpeech(lang, unit, mode, letterMode);
+    lastVoiceRef.current = { unit, at: Date.now() };
     speakText?.(speech.text, { ...speech.options, interrupt: true });
   }, [lang, letterMode, mode, speakText]);
 
@@ -317,14 +323,14 @@ export function WordGame({
     const reading = mode === 'SYLLABLES'
       ? `${units.map((unit) => unit.toLowerCase()).join(', ')}. ${spokenWord(word)}!`
       : spokenWord(word);
-    let readAt = 150;
+    let readAt = CELEBRATE_AFTER_MS;
     if (soundOut) {
       units.forEach((unit, index) => later(() => {
         setSounding(index);
         setBubble(units.slice(0, index + 1).map(displayUnit).join('-'));
         speakUnit(unit);
-      }, 300 + index * SOUND_BEAT_MS));
-      readAt = 300 + units.length * SOUND_BEAT_MS + 120;
+      }, CELEBRATE_AFTER_MS + index * SOUND_BEAT_MS));
+      readAt = CELEBRATE_AFTER_MS + units.length * SOUND_BEAT_MS + 120;
     }
     later(() => {
       setSounding(-1);
@@ -386,9 +392,11 @@ export function WordGame({
     tapMissRef.current = 0;
     const isLast = Object.keys(nextPlaced).length === units.length;
     sfxPlace(tile.unit, isLast);
-    // no voice here: the letter already said itself when it was picked up
+    // the letter says itself again as it lands in its place
+    const recent = lastVoiceRef.current;
+    if (recent.unit !== tile.unit || Date.now() - recent.at > LANDING_QUIET_MS) speakUnit(tile.unit);
     if (isLast) celebrate();
-  }, [celebrate, placed, units.length]);
+  }, [celebrate, placed, speakUnit, units.length]);
 
   const registerMistake = useCallback((slotIndex) => {
     mistakesRef.current += 1;

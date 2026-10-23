@@ -18,7 +18,7 @@ import { TeacherPanel } from './components/TeacherPanel';
 import { ListenGame } from './components/ListenGame';
 import { AlphabetBook } from './components/AlphabetBook';
 import { ColoringGame } from './components/ColoringGame';
-import { clearChildData, readStats, rememberProfile } from './lib/progress';
+import { addLocalScore, clearChildData, readLocalScore, readStats, rememberProfile } from './lib/progress';
 import { GIFT_EVERY, computeAwards, isFriendId, nextFriendId, readSeenAwards, writeSeenAwards } from './lib/rewards';
 import { downloadPhrases } from './lib/voicePack';
 import { allVoicePhrases } from './lib/voicePackAll';
@@ -1270,7 +1270,7 @@ export default function App() {
   // with progress kept on this device.
   const handleKidLogin = async (name) => {
     const playOnDevice = () => {
-      const user = { username: name, score: 0, isAdmin: false, offline: true };
+      const user = { username: name, score: readLocalScore(name), isAdmin: false, offline: true };
       setCurrentUser(user);
       setAdminToken(null);
       setGameState('MENU');
@@ -1372,6 +1372,10 @@ export default function App() {
   // A finished session in any game: stars on the server and a step towards Irbi's next gift.
   const handlePlaySessionComplete = async () => {
     registerFreshWin();
+    if (currentUser?.offline && !currentUser.isAdmin) {
+      const score = addLocalScore(userKey, 10);
+      setCurrentUser((prev) => (prev ? { ...prev, score } : prev));
+    }
     if (currentUser && !currentUser.offline && !currentUser.isAdmin) {
       try {
         const res = await fetch(`${API_BASE_URL}/api/update-score`, {
@@ -1394,6 +1398,10 @@ export default function App() {
     const solved = isSyllables ? syllableStickers : stickers;
     if (solved.includes(level.id)) return;
 
+    if (currentUser?.offline && !currentUser.isAdmin) {
+      const score = addLocalScore(userKey, 10);
+      setCurrentUser((prev) => (prev ? { ...prev, score } : prev));
+    }
     if (currentUser && !currentUser.offline && !currentUser.isAdmin) {
       try {
         const res = await fetch(`${API_BASE_URL}/api/update-score`, {

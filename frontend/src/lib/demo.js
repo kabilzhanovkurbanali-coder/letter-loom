@@ -2,10 +2,11 @@
 // They are remembered as demo profiles and can be removed in one tap; real children are never touched.
 import { FRIENDS } from './rewards';
 import {
-  MODULES, clearChildData, readProfiles, setLevelLocked, todayKey, writeActivityLevel, writeProfiles, writeStats
+  MODULES, clearChildData, readProfiles, setLevelLocked, todayKey, writeActivityLevel, writeLocalScore, writeProfiles, writeStats
 } from './progress';
 
 const DEMO_KEY = 'll_demo_profiles';
+const SEEDED_KEY = 'll_demo_seeded';
 const LANGS = ['EN', 'RU', 'KG', 'UZ'];
 
 const NAMES = {
@@ -95,6 +96,9 @@ const fillChild = (name, plan, seed) => {
     dayCounts[day] = Math.max(1, share);
   });
   writeStats(name, { activities, days: dayCounts });
+  // stars as the server would have counted them: ten per finished session and per new word
+  const sessions = Object.values(activities).reduce((sum, item) => sum + item.sessions, 0);
+  writeLocalScore(name, (sessions + plan.words + plan.syllables) * 10);
 
   const wordIds = Array.from({ length: plan.words }, (_, index) => index + 1);
   const wordMap = {};
@@ -128,6 +132,19 @@ export const addDemoKids = (lang) => {
   const profiles = [...readProfiles(), ...added];
   writeProfiles(profiles);
   return profiles;
+};
+
+// The website copy opens with children who have already played, so the game can be shown at once.
+// Only once per device: removed in teacher mode, they do not come back.
+export const seedDemoOnce = () => {
+  try {
+    if (localStorage.getItem(SEEDED_KEY)) return;
+    localStorage.setItem(SEEDED_KEY, '1');
+    const lang = localStorage.getItem('er_lang');
+    addDemoKids(LANGS.includes(lang) ? lang : 'RU');
+  } catch {
+    // no storage: the game starts empty
+  }
 };
 
 export const removeDemoKids = () => {

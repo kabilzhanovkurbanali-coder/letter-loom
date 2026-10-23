@@ -84,6 +84,17 @@ export const rememberProfile = (name) => {
   return next;
 };
 
+// ---------- stars of children who play on the device only ----------
+// The server counts stars; a child playing without it (or on the website copy) keeps them here.
+const scoreKey = (userKey) => `ll_score_${userKey}`;
+export const readLocalScore = (userKey) => Math.max(0, Number(safeGet(scoreKey(userKey))) || 0);
+export const writeLocalScore = (userKey, value) => safeSet(scoreKey(userKey), String(Math.max(0, Math.round(value))));
+export const addLocalScore = (userKey, points) => {
+  const next = readLocalScore(userKey) + points;
+  writeLocalScore(userKey, next);
+  return next;
+};
+
 // ---------- levels ----------
 export const levelKeys = (userKey, activityId, lang) => {
   const [game, mode] = activityId.split(':');

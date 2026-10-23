@@ -4,6 +4,10 @@ import '@fontsource-variable/nunito';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import { seedDemoOnce } from './lib/demo';
+
+// the website copy shows a few children who have already played
+if (process.env.REACT_APP_STATIC_SITE === '1') seedDemoOnce();
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

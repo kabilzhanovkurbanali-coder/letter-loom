@@ -275,7 +275,7 @@ const rowCache = {};
 
 // One unit drawn as letters in a row: the unit itself if it is a known letter (Uzbek SH too),
 // otherwise each of its letters. Unknown signs keep a place and are drawn as text.
-export const glyphRow = (unit, gap = 12) => {
+export const glyphRow = (unit, gap = 18) => {
   const key = String(unit || '');
   if (rowCache[key]) return rowCache[key];
   const pieces = glyphFor(key) ? [key] : splitUnit(key);
